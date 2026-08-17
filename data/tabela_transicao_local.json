@@ -1,0 +1,82 @@
+[
+  {
+    "ano": 2026,
+    "fase": "teste",
+    "aliquota_cbs_pct": 0.9,
+    "aliquota_ibs_pct": 0.1,
+    "aliquota_icms_pct_da_base": 100.0,
+    "aliquota_combinada_nova_pct": 1.0,
+    "versao": "v1.0",
+    "oficial": true
+  },
+  {
+    "ano": 2027,
+    "fase": "transicao",
+    "aliquota_cbs_pct": 8.8,
+    "aliquota_ibs_pct": 0.1,
+    "aliquota_icms_pct_da_base": 100.0,
+    "aliquota_combinada_nova_pct": 8.9,
+    "versao": "v1.0",
+    "oficial": false
+  },
+  {
+    "ano": 2028,
+    "fase": "transicao",
+    "aliquota_cbs_pct": 8.8,
+    "aliquota_ibs_pct": 0.1,
+    "aliquota_icms_pct_da_base": 100.0,
+    "aliquota_combinada_nova_pct": 8.9,
+    "versao": "v1.0",
+    "oficial": false
+  },
+  {
+    "ano": 2029,
+    "fase": "transicao",
+    "aliquota_cbs_pct": 8.8,
+    "aliquota_ibs_pct": 1.91,
+    "aliquota_icms_pct_da_base": 90.0,
+    "aliquota_combinada_nova_pct": 10.71,
+    "versao": "v1.0",
+    "oficial": false
+  },
+  {
+    "ano": 2030,
+    "fase": "transicao",
+    "aliquota_cbs_pct": 8.8,
+    "aliquota_ibs_pct": 3.82,
+    "aliquota_icms_pct_da_base": 80.0,
+    "aliquota_combinada_nova_pct": 12.62,
+    "versao": "v1.0",
+    "oficial": false
+  },
+  {
+    "ano": 2031,
+    "fase": "transicao",
+    "aliquota_cbs_pct": 8.8,
+    "aliquota_ibs_pct": 5.73,
+    "aliquota_icms_pct_da_base": 70.0,
+    "aliquota_combinada_nova_pct": 14.53,
+    "versao": "v1.0",
+    "oficial": false
+  },
+  {
+    "ano": 2032,
+    "fase": "transicao",
+    "aliquota_cbs_pct": 8.8,
+    "aliquota_ibs_pct": 7.64,
+    "aliquota_icms_pct_da_base": 60.0,
+    "aliquota_combinada_nova_pct": 16.44,
+    "versao": "v1.0",
+    "oficial": false
+  },
+  {
+    "ano": 2033,
+    "fase": "plena",
+    "aliquota_cbs_pct": 8.8,
+    "aliquota_ibs_pct": 19.1,
+    "aliquota_icms_pct_da_base": 0.0,
+    "aliquota_combinada_nova_pct": 27.9,
+    "versao": "v1.0",
+    "oficial": false
+  }
+]

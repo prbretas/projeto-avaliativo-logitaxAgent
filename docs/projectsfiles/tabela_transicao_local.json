@@ -1,0 +1,131 @@
+{
+  "_metadata": {
+    "descricao": "Tabela de fallback determinístico usada pela tool consultar_tabela_transicao quando a fonte externa está indisponível. Aplica-se a operações de transporte rodoviário de cargas (frete), regime tributário regular (Lucro Real/Presumido).",
+    "escopo": "transporte_cargas_regime_regular",
+    "versao": "v1",
+    "atualizado_em": "2026-08-16",
+    "aviso_importante": "Os valores marcados com \"oficial\": false são ESTIMATIVAS baseadas em projeções técnicas divulgadas (Ministério da Fazenda / CGIBS) e ainda dependem de resolução do Senado Federal (arts. 18, 353-359 e 361-366 da LC 214/2025), que pode ocorrer até 2035. Não usar como fonte definitiva de precificação real — apenas para fins de simulação e demonstração do agente. Revisar contra fonte oficial (planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm) antes de qualquer uso em produção.",
+    "baseline_regime_atual": {
+      "descricao": "Estimativa da carga tributária federal+estadual incidente hoje sobre o frete rodoviário de cargas no regime não-cumulativo (Lucro Real), para fins de comparação. NÃO inclui ISS (não incide sobre frete de carga) nem custos operacionais.",
+      "pis_pct": 1.65,
+      "cofins_pct": 7.6,
+      "icms_medio_interestadual_pct": 12.0,
+      "total_estimado_pct": 21.25,
+      "oficial": false,
+      "fonte": "Estimativa de mercado (blog.transp.net, 2026) — varia por UF de origem/destino; ICMS interestadual efetivo vai de ~7% a ~18% conforme o par de UFs."
+    }
+  },
+  "anos": [
+    {
+      "ano": 2026,
+      "fase": "teste",
+      "aliquota_cbs_pct": 0.9,
+      "aliquota_ibs_pct": 0.1,
+      "aliquota_icms_pct_da_base": 100,
+      "aliquota_combinada_nova_pct": 1.0,
+      "efeito_liquido_esperado_pct": 0.0,
+      "oficial": true,
+      "base_legal": "LC 214/2025, arts. 343, 346 e 348, I",
+      "observacoes": "Alíquota simbólica de teste. Compensável integralmente com PIS/COFINS devidos no mesmo período, desde que cumpridas as obrigações acessórias (destaque correto no CT-e). Objetivo é calibrar sistemas, não arrecadar."
+    },
+    {
+      "ano": 2027,
+      "fase": "transicao_federal",
+      "aliquota_cbs_pct": 8.8,
+      "aliquota_cbs_reducao_temporaria_pp": 0.1,
+      "aliquota_ibs_pct": 0.1,
+      "aliquota_icms_pct_da_base": 100,
+      "aliquota_combinada_nova_pct": 8.8,
+      "oficial": false,
+      "base_legal": "LC 214/2025, arts. 344 (IBS residual 0,05% estadual + 0,05% municipal) e 347 (redução de 0,1 p.p. na CBS para compensar o IBS residual)",
+      "observacoes": "CBS passa a valer integralmente, substituindo PIS/COFINS. ICMS continua incidindo em paralelo (convivência de sistemas). Valor da alíquota de referência da CBS (8,8%) é projeção técnica (Ministério da Fazenda/CGIBS) — pode variar até a fixação final pelo Senado."
+    },
+    {
+      "ano": 2028,
+      "fase": "transicao_federal",
+      "aliquota_cbs_pct": 8.8,
+      "aliquota_cbs_reducao_temporaria_pp": 0.1,
+      "aliquota_ibs_pct": 0.1,
+      "aliquota_icms_pct_da_base": 100,
+      "aliquota_combinada_nova_pct": 8.8,
+      "oficial": false,
+      "base_legal": "LC 214/2025, arts. 344 e 347 (mesma regra de 2027, vigente até 31/12/2028)",
+      "observacoes": "Último ano da regra de transição federal com IBS residual fixo. A partir de 2029 começa a fase de substituição real do ICMS/ISS."
+    },
+    {
+      "ano": 2029,
+      "fase": "transicao_icms_iss",
+      "aliquota_cbs_pct": 8.8,
+      "aliquota_ibs_pct_da_plena": 10,
+      "aliquota_ibs_pct_estimada": 1.91,
+      "aliquota_icms_pct_da_base": 90,
+      "aliquota_combinada_nova_pct": 10.7,
+      "oficial_percentual_substituicao": true,
+      "oficial_valor_aliquota": false,
+      "base_legal": "LC 214/2025 (cronograma da Receita Federal — gov.br/receitafederal); percentual de substituição (10% IBS / 90% ICMS-ISS) é oficial, valor em R$ é estimado",
+      "observacoes": "Início do 'coração' da transição: o IBS passa a valer 10% de sua alíquota plena estimada, e o ICMS/ISS caem para 90% da alíquota vigente em 31/12/2028."
+    },
+    {
+      "ano": 2030,
+      "fase": "transicao_icms_iss",
+      "aliquota_cbs_pct": 8.8,
+      "aliquota_ibs_pct_da_plena": 20,
+      "aliquota_ibs_pct_estimada": 3.82,
+      "aliquota_icms_pct_da_base": 80,
+      "aliquota_combinada_nova_pct": 12.6,
+      "oficial_percentual_substituicao": true,
+      "oficial_valor_aliquota": false,
+      "base_legal": "LC 214/2025 (cronograma Receita Federal)",
+      "observacoes": "IBS avança para 20% da plena; ICMS/ISS reduzidos a 80% da base de 2028."
+    },
+    {
+      "ano": 2031,
+      "fase": "transicao_icms_iss",
+      "aliquota_cbs_pct": 8.8,
+      "aliquota_ibs_pct_da_plena": 30,
+      "aliquota_ibs_pct_estimada": 5.73,
+      "aliquota_icms_pct_da_base": 70,
+      "aliquota_combinada_nova_pct": 14.5,
+      "oficial_percentual_substituicao": true,
+      "oficial_valor_aliquota": false,
+      "base_legal": "LC 214/2025 (cronograma Receita Federal)",
+      "observacoes": "IBS a 30% da plena; ICMS/ISS a 70% da base de 2028."
+    },
+    {
+      "ano": 2032,
+      "fase": "transicao_icms_iss",
+      "aliquota_cbs_pct": 8.8,
+      "aliquota_ibs_pct_da_plena": 40,
+      "aliquota_ibs_pct_estimada": 7.64,
+      "aliquota_icms_pct_da_base": 60,
+      "aliquota_combinada_nova_pct": 16.4,
+      "oficial_percentual_substituicao": true,
+      "oficial_valor_aliquota": false,
+      "base_legal": "LC 214/2025 (cronograma Receita Federal)",
+      "observacoes": "Último ano de convivência. IBS a 40% da plena; ICMS/ISS a 60% da base de 2028. Em 2033 o sistema antigo é extinto."
+    },
+    {
+      "ano": 2033,
+      "fase": "regime_pleno",
+      "aliquota_cbs_pct": 8.8,
+      "aliquota_ibs_pct": 19.1,
+      "aliquota_icms_pct_da_base": 0,
+      "aliquota_combinada_nova_pct": 27.9,
+      "aliquota_combinada_teto_legal_pct": 26.5,
+      "oficial": false,
+      "base_legal": "LC 214/2025; teto legal de 26,5% para a soma de referência de IBS+CBS (art. 20-A/EC 132) — projeção do Comitê Gestor do IBS (CGIBS) aponta 27,91%, acima do teto, o que pode gerar PL de ajuste antes da vigência plena",
+      "observacoes": "ICMS e ISS extintos. Sistema opera só com IBS + CBS. Valor definitivo depende de resolução do Senado Federal, prevista para ocorrer até 2035 — tratar como cenário de referência, não como valor final."
+    }
+  ],
+  "regimes_diferenciados": {
+    "simples_nacional": {
+      "descricao": "Em 2026, sem alteração prática — só passa a destacar IBS/CBS a partir de 2027, com opção de aderir ao sistema de créditos (regime híbrido) para não perder competitividade frente a tomadores do regime regular.",
+      "oficial": true,
+      "base_legal": "LC 214/2025 — tratamento diferenciado do Simples Nacional"
+    },
+    "transporte_publico_coletivo": {
+      "descricao": "Alíquota zero para transporte público coletivo urbano/semiurbano — não se aplica ao frete de cargas.",
+      "oficial": true
+    }
+  }
+}
