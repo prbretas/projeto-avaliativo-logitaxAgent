@@ -1,0 +1,44 @@
+name: Verificar Tabela de Transição
+
+on:
+  schedule:
+    # Toda segunda-feira às 8h UTC
+    - cron: '0 8 * * 1'
+  workflow_dispatch: # Permite execução manual
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install httpx
+
+      - name: Run verification script
+        run: python scripts/atualizar_tabela.py
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet docs/devops/ultima-verificacao-tabela.md; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create PR if discrepancies found
+        if: steps.changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore: atualizar relatório de verificação da tabela de transição"
+          title: "chore: verificação semanal da tabela de transição"
+          body: |
+            Verificação automática semanal da tabela de transição tributária.
+            Revise o relatório em `docs/devops/ultima-verificacao-tabela.md`.
+          branch: chore/verificar-tabela
+          base: main
