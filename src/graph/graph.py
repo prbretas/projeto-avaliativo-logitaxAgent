@@ -19,6 +19,7 @@ from langgraph.graph import END, StateGraph
 
 from src.graph.nodes.parse_operacao import parse_operacao
 from src.graph.nodes.sanitize_input import sanitize_input
+from src.graph.nodes.enriquecer_operacao import enriquecer_operacao
 from src.graph.nodes.route_regime import route_regime
 from src.graph.nodes.simular_regime import (
     simular_regime_regular,
@@ -90,6 +91,7 @@ def build_graph() -> StateGraph:
     # --- Register Nodes ---
     graph.add_node("parse_operacao", parse_operacao)
     graph.add_node("sanitize_input", sanitize_input)
+    graph.add_node("enriquecer_operacao", enriquecer_operacao)
     graph.add_node("route_regime", route_regime)
     graph.add_node("simular_regime_regular", simular_regime_regular)
     graph.add_node("simular_regime_hibrido_simples", simular_regime_hibrido_simples)
@@ -108,8 +110,11 @@ def build_graph() -> StateGraph:
     # parse → sanitize
     graph.add_edge("parse_operacao", "sanitize_input")
 
-    # sanitize → route_regime
-    graph.add_edge("sanitize_input", "route_regime")
+    # sanitize → enriquecer_operacao (MCP fiscal-brasil)
+    graph.add_edge("sanitize_input", "enriquecer_operacao")
+
+    # enriquecer_operacao → route_regime
+    graph.add_edge("enriquecer_operacao", "route_regime")
 
     # route_regime → conditional (simples or regular)
     graph.add_conditional_edges(
