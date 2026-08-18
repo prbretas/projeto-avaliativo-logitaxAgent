@@ -21,8 +21,11 @@ from typing import Any
 
 from src.graph.nodes.calculo import (
     calcular_delta_percentual,
+    calcular_detalhe_regime_atual,
+    calcular_detalhe_regime_novo,
     calcular_tributo_atual,
     calcular_tributo_novo,
+    gerar_texto_economia_ou_aumento,
 )
 from src.models.resultado import ResultadoAno
 from src.tools.client_transicao import consultar_tabela_transicao
@@ -69,9 +72,16 @@ async def _simular_ano_individual(
 
     # Step 2: Calculate tax under Regime_Atual
     tributo_atual = calcular_tributo_atual(valor_frete)
+    detalhe_atual = calcular_detalhe_regime_atual(valor_frete)
 
     # Step 3: Calculate tax under Regime_Novo
     tributo_novo = calcular_tributo_novo(
+        valor_frete=valor_frete,
+        tabela=tabela,
+        regime=regime,
+        credit_factor=credit_factor,
+    )
+    detalhe_novo = calcular_detalhe_regime_novo(
         valor_frete=valor_frete,
         tabela=tabela,
         regime=regime,
@@ -81,6 +91,9 @@ async def _simular_ano_individual(
     # Step 4: Compute delta percentual
     delta = calcular_delta_percentual(tributo_atual, tributo_novo)
 
+    # Step 5: Generate descriptive text
+    economia_texto = gerar_texto_economia_ou_aumento(tributo_atual, tributo_novo)
+
     return ResultadoAno(
         ano=ano,
         valor_tributo_atual=tributo_atual,
@@ -88,6 +101,9 @@ async def _simular_ano_individual(
         delta_percentual=delta,
         fonte_tool=resultado_tool.fonte,
         fallback_usado=resultado_tool.fallback_usado,
+        detalhe_regime_atual=detalhe_atual,
+        detalhe_regime_novo=detalhe_novo,
+        economia_ou_aumento=economia_texto,
     )
 
 
