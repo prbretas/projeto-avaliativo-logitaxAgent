@@ -337,7 +337,42 @@ Documentado em `docs/evidencias/ciclo-refinamento.md` — 4 ciclos reais:
 - Integração com e-Financeira para dados reais de CT-e
 - Multi-tenancy com autenticação JWT
 
-## 11. Link do Vídeo
+## 11. Integrabilidade
+
+O logitaxAgent é **API-first** — desenhado para ser consumido como microsserviço por qualquer sistema que suporte chamadas HTTP/REST.
+
+### Arquitetura de Integração
+
+```
+┌─────────────┐         ┌───────────────┐         ┌──────────────┐
+│  ERP / TMS  │──HTTP──▶│  logitaxAgent │──HTTP──▶│    n8n       │
+│  (qualquer) │◀─JSON───│  (FastAPI)    │         │  (alertas)   │
+└─────────────┘         └───────────────┘         └──────────────┘
+```
+
+### Cenários de integração
+
+| Sistema | Caso de uso |
+|---------|-------------|
+| **TMS (Gestão de Frete)** | Consulta impacto tributário na cotação de frete, exibe delta na tela de aprovação |
+| **ERP — módulo fiscal** | Preenche cClassTrib no CT-e, projeta impacto antes da emissão |
+| **BI / Dashboard** | Consome histórico via `/observabilidade/{thread_id}` para tendência de custo por rota |
+
+### Recursos de integração
+
+- **OpenAPI/Swagger** auto-gerado pelo FastAPI (`/docs`)
+- **JSON padronizado** com versionamento de endpoint (`/v1/simulacao`)
+- **Webhook** para notificação assíncrona (n8n ou qualquer receptor HTTP)
+- **Thread_Id** como chave de correlação entre sistemas
+- **MCP (Model Context Protocol)** — integração com `mcp-fiscal-brasil` para dados fiscais reais (CNPJ, Simples Nacional)
+
+### Limitações (escopo futuro)
+
+- Sem conector específico para nenhum ERP (sistema é agnóstico)
+- Sem interface embarcada — consumo via API REST
+- Sem sincronização bidirecional de dados mestres
+
+## 12. Link do Vídeo
 
 > 🎬 **[TODO: Adicionar link do YouTube não listado aqui]**
 
