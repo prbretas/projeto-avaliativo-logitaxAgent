@@ -299,6 +299,104 @@ async def _call_llm(prompt: str) -> str:
     return data["choices"][0]["message"]["content"].strip()
 
 
+def _gerar_comentario_agente(
+    resultados_por_ano: list[dict[str, Any]],
+    operacao: Any,
+) -> str:
+    """Generate an analytical comment about the simulation results.
+
+    Creates a concise, actionable paragraph explaining:
+    - Summary of impact (economy or increase)
+    - Root cause (which tax component drives the change)
+    - Practical recommendation
+    - Warning if data is estimated (not official)
+
+    This is deterministic (no LLM call) — uses calculation results directly.
+    Max ~200 words, accessible language for freight managers.
+
+    Args:
+        resultados_por_ano: List of result dicts with year calculations.
+        operacao: The freight operation (dict or Pydantic model).
+
+    Returns:
+        Analytical comment string.
+    """
+    if not resultados_por_ano:
+        return "Nenhum resultado de simulação disponível para análise."
+
+    # Extract operation details
+    if isinstance(operacao, dict):
+        regime = operacao.get("regime_tributario", "lucro_real")
+        valor_frete = operacao.get("valor_frete", 0)
+    else:
+        regime = getattr(operacao, "regime_tributario", "lucro_real")
+        valor_frete = getattr(operacao, "valor_frete", 0)
+
+    # Analyze results
+    partes: list[str] = []
+
+    # Overall trend
+    deltas = [r.get("delta_percentual", 0) if isinstance(r, dict) else getattr(r, "delta_percentual", 0) for r in resultados_por_ano]
+    media_delta = sum(deltas) / len(deltas) if deltas else 0
+
+    if media_delta > 5:
+        partes.append(
+            f"A simulação indica um aumento médio de {abs(media_delta):.1f}% na carga "
+            f"tributária ao longo do período de transição."
+        )
+    elif media_delta < -5:
+        partes.append(
+            f"A simulação indica uma redução média de {abs(media_delta):.1f}% na carga "
+            f"tributária ao longo do período de transição."
+        )
+    else:
+        partes.append(
+            "A simulação indica variação moderada na carga tributária durante a transição."
+        )
+
+    # Year with biggest impact
+    if len(deltas) > 1:
+        max_idx = deltas.index(max(deltas, key=abs))
+        resultado_max = resultados_por_ano[max_idx]
+        ano_max = resultado_max.get("ano") if isinstance(resultado_max, dict) else getattr(resultado_max, "ano", "?")
+        delta_max = deltas[max_idx]
+        if delta_max > 0:
+            partes.append(
+                f"O maior impacto ocorre em {ano_max}, com aumento de {delta_max:.1f}% "
+                f"— causado pela entrada plena do IBS substituindo o ICMS."
+            )
+        else:
+            partes.append(
+                f"A maior economia ocorre em {ano_max}, com redução de {abs(delta_max):.1f}%."
+            )
+
+    # Regime-specific advice
+    if regime == "simples_nacional":
+        partes.append(
+            "Atenção: optantes do Simples Nacional não aproveitam créditos IBS/CBS. "
+            "Avalie a migração para regime regular antes de 2029 se o volume de frete justificar."
+        )
+    elif media_delta > 10:
+        partes.append(
+            "Recomenda-se revisar contratos de frete com vigência após 2027, "
+            "considerando cláusula de reajuste tributário."
+        )
+
+    # Warning about estimated data
+    tem_estimativa = any(
+        not (r.get("detalhe_regime_novo", {}).get("oficial", True) if isinstance(r, dict)
+             else getattr(getattr(r, "detalhe_regime_novo", None), "oficial", True))
+        for r in resultados_por_ano
+    )
+    if tem_estimativa:
+        partes.append(
+            "Nota: algumas alíquotas utilizadas são projeções técnicas (CGIBS/MF), "
+            "não valores oficiais. Resultados podem variar após resolução do Senado."
+        )
+
+    return " ".join(partes)
+
+
 async def generate_justification(state: dict[str, Any]) -> dict[str, Any]:
     """Generate a natural language justification citing legislation via LLM.
 
@@ -443,8 +541,11 @@ async def generate_justification(state: dict[str, Any]) -> dict[str, Any]:
 
     # Determine outcome
     if justificativa is not None:
+        # Generate analytical comment based on results
+        comentario = _gerar_comentario_agente(resultados_dicts, operacao)
         return {
             "justificativa": justificativa,
+            "comentario_agente": comentario,
             "alertas": alertas,
         }
     else:
@@ -455,6 +556,7 @@ async def generate_justification(state: dict[str, Any]) -> dict[str, Any]:
         )
         return {
             "justificativa": None,
+            "comentario_agente": "",
             "revisao_manual": True,
             "alertas": alertas,
         }
