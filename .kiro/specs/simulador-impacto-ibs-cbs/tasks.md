@@ -24,13 +24,13 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Implementar validadores customizados Pydantic para: UFs válidas, range de valor_frete, range de ano, enums de modal e regime
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 2.6_
 
-  - [ ]* 1.3 Write property test: valid operations accepted
+  - [x]* 1.3 Write property test: valid operations accepted
     - **Property 1: Valid operations are always accepted**
     - Usar Hypothesis strategy `valid_operacao` para gerar operações válidas e verificar que passam validação Pydantic sem erros
     - Arquivo: `tests/test_properties_validation.py`
     - **Validates: Requirements 1.1**
 
-  - [ ]* 1.4 Write property test: invalid inputs produce comprehensive errors
+  - [x]* 1.4 Write property test: invalid inputs produce comprehensive errors
     - **Property 2: Invalid inputs produce comprehensive structured errors**
     - Usar Hypothesis strategies para gerar payloads com campos inválidos e verificar que todos os erros são retornados simultaneamente
     - Arquivo: `tests/test_properties_validation.py`
@@ -50,7 +50,7 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Retornar `TabelaTransicaoResponse` com campo `versao`
     - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-  - [ ]* 2.3 Write property test: tool validation rejects invalid parameters
+  - [x]* 2.3 Write property test: tool validation rejects invalid parameters
     - **Property 8: Tool validation rejects invalid parameters**
     - Testar que ano fora de [2026, 2033], UF inválida, ou regime inválido retornam HTTP 422
     - Arquivo: `tests/test_properties_tool.py`
@@ -87,19 +87,19 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Arredondamento para 2 casas decimais
     - _Requirements: 2.6_
 
-  - [ ]* 4.5 Write property test: tax calculation uses correct year-specific formula
+  - [x]* 4.5 Write property test: tax calculation uses correct year-specific formula
     - **Property 3: Tax calculation uses correct year-specific formula**
     - Para qualquer operação válida e ano, verificar que valor_tributo_atual = valor_frete × 21.25% e valor_tributo_novo usa rates da Tabela_Transicao
     - Arquivo: `tests/test_properties_calculo.py`
     - **Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5**
 
-  - [ ]* 4.6 Write property test: delta percentual is correctly derived
+  - [x]* 4.6 Write property test: delta percentual is correctly derived
     - **Property 4: Delta percentual is correctly derived**
     - Verificar que delta = ((novo − atual) / atual) × 100 com 2 casas decimais
     - Arquivo: `tests/test_properties_calculo.py`
     - **Validates: Requirements 2.6**
 
-  - [ ]* 4.7 Write property test: regime routing produces differentiated results
+  - [x]* 4.7 Write property test: regime routing produces differentiated results
     - **Property 5: Regime routing produces differentiated results**
     - Gerar pares de operações idênticas exceto regime (simples vs lucro_real) e verificar valores diferentes
     - Arquivo: `tests/test_properties_routing.py`
@@ -120,13 +120,13 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Implementar timeout de 3 segundos — bloquear operação se falhar
     - _Requirements: 9.1, 9.2, 9.5_
 
-  - [ ]* 5.3 Write property test: sanitizer wraps and truncates
+  - [x]* 5.3 Write property test: sanitizer wraps and truncates
     - **Property 14: Sanitizer wraps and truncates**
     - Verificar que qualquer string em observacoes é encapsulada em "UNTRUSTED_USER_DATA" e limitada a 500 chars
     - Arquivo: `tests/test_properties_seguranca.py`
     - **Validates: Requirements 9.1**
 
-  - [ ]* 5.4 Write property test: prompt injection does not alter tax results
+  - [x]* 5.4 Write property test: prompt injection does not alter tax results
     - **Property 15: Prompt injection does not alter tax results**
     - Verificar que operações com padrões de injection retornam mesmos valores de tributo que operações com texto benigno
     - Arquivo: `tests/test_properties_seguranca.py`
@@ -152,13 +152,13 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Tratar falha parcial: retornar resultados bem-sucedidos + indicar anos com falha
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-  - [ ]* 5.8 Write property test: fan-out results are chronologically ordered
+  - [x]* 5.8 Write property test: fan-out results are chronologically ordered
     - **Property 6: Fan-out results are chronologically ordered**
     - Verificar que resultados consolidados são ordenados por ano ascendente
     - Arquivo: `tests/test_properties_fanout.py`
     - **Validates: Requirements 3.2**
 
-  - [ ]* 5.9 Write property test: partial failure preserves successful results
+  - [x]* 5.9 Write property test: partial failure preserves successful results
     - **Property 7: Partial failure preserves successful results**
     - Simular falha em subset de anos e verificar que resultados bem-sucedidos são preservados
     - Arquivo: `tests/test_properties_fanout.py`
@@ -170,13 +170,13 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Garantir que não há re-entry após forced human_review
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-  - [ ]* 5.11 Write property test: reclassification counter never exceeds 3
+  - [x]* 5.11 Write property test: reclassification counter never exceeds 3
     - **Property 9: Reclassification counter never exceeds 3**
     - Verificar que tentativas_reclassificacao nunca excede 3 e força human_review
     - Arquivo: `tests/test_properties_stopping.py`
     - **Validates: Requirements 6.3, 6.4**
 
-  - [ ]* 5.12 Write property test: no re-entry after forced human review
+  - [x]* 5.12 Write property test: no re-entry after forced human review
     - **Property 10: No re-entry after forced human review**
     - Verificar que após revisao_manual=true, não há retorno ao loop de simulação
     - Arquivo: `tests/test_properties_stopping.py`
@@ -207,7 +207,7 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Documentar prompt em `docs/prompts/generate_justification.md`
     - _Requirements: 7.2, 7.4, 7.5_
 
-  - [ ]* 7.4 Write property test: justification rates match tool rates
+  - [x]* 7.4 Write property test: justification rates match tool rates
     - **Property 11: Justification rates match Tool rates**
     - Verificar que rates citadas na justificativa correspondem exatamente às rates retornadas pela Tool
     - Arquivo: `tests/test_properties_justificativa.py`
@@ -222,13 +222,13 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Retrieval idempotente (consultar sem alterar estado)
     - _Requirements: 10.1, 10.2, 10.3, 10.5, 10.6_
 
-  - [ ]* 7.6 Write property test: no export without human approval
+  - [x]* 7.6 Write property test: no export without human approval
     - **Property 16: No export without human approval**
     - Verificar que export_result nunca executa sem aprovado_humano=true
     - Arquivo: `tests/test_properties_human_review.py`
     - **Validates: Requirements 10.4**
 
-  - [ ]* 7.7 Write property test: pending review retrieval is idempotent
+  - [x]* 7.7 Write property test: pending review retrieval is idempotent
     - **Property 17: Pending review retrieval is idempotent**
     - Verificar que consultas repetidas ao resumo não alteram estado pendente
     - Arquivo: `tests/test_properties_human_review.py`
@@ -243,13 +243,13 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Retornar erro estruturado para thread_id inexistente
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
-  - [ ]* 8.2 Write property test: session state round-trip
+  - [x]* 8.2 Write property test: session state round-trip
     - **Property 12: Session state round-trip**
     - Verificar que estado persistido e recuperado é idêntico ao original
     - Arquivo: `tests/test_properties_sessao.py`
     - **Validates: Requirements 8.1, 8.2**
 
-  - [ ]* 8.3 Write property test: unknown thread_id returns error
+  - [x]* 8.3 Write property test: unknown thread_id returns error
     - **Property 13: Unknown Thread_Id returns error**
     - Verificar que thread_id sem estado retorna erro pedindo input completo
     - Arquivo: `tests/test_properties_sessao.py`
@@ -262,7 +262,7 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Timeout webhook 10s — em caso de falha, logar na auditoria sem retry
     - _Requirements: 10.3, 14.1, 14.2_
 
-  - [ ]* 8.5 Write property test: webhook payload contains required fields
+  - [x]* 8.5 Write property test: webhook payload contains required fields
     - **Property 19: Webhook payload contains required fields**
     - Verificar que payload contém: Thread_Id, Delta_Percentual, ano, valor_tributo_atual, valor_tributo_novo, timestamp
     - Arquivo: `tests/test_properties_webhook.py`
@@ -284,7 +284,7 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Registrar erros com tipo e ação de recovery (retry, fallback, escalation)
     - _Requirements: 11.1, 11.2, 11.3_
 
-  - [ ]* 9.3 Write property test: structured logs contain all required fields
+  - [x]* 9.3 Write property test: structured logs contain all required fields
     - **Property 18: Structured logs contain all required fields**
     - Verificar que cada log contém: Thread_Id, node name, ISO 8601 timestamp, duration_ms ≥ 0, status
     - Arquivo: `tests/test_properties_observabilidade.py`
