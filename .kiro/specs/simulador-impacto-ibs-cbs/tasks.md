@@ -185,21 +185,21 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
 - [x] 6. Checkpoint — Validar grafo e cálculos
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 7. RAG, justificativa e human review
+- [x] 7. RAG, justificativa e human review
   - [x] 7.1 Implementar índice vetorial ChromaDB e script de ingestão
     - Criar `scripts/run_ingestao.py` para indexar trechos de LC 214/2025, EC 132/2023 e NTs CT-e
     - Cada chunk com metadata: source_law, article_number, applicable_year_range
     - Logar número de chunks indexados e erros de parsing
     - _Requirements: 7.1, 7.6_
 
-  - [ ] 7.2 Implementar node `retrieve_context`
+  - [x] 7.2 Implementar node `retrieve_context`
     - Criar `src/graph/nodes/retrieve_context.py`
     - Busca vetorial em ChromaDB filtrada por cenário (ano, regime)
     - Retornar até 5 chunks com citações formatadas (ex: "art. 343, LC 214/2025")
     - Tratar caso de zero chunks: prosseguir sem citações + warning
     - _Requirements: 7.1, 7.2, 7.3_
 
-  - [ ] 7.3 Implementar node `generate_justification`
+  - [x] 7.3 Implementar node `generate_justification`
     - Criar `src/graph/nodes/generate_justification.py`
     - Compor prompt com trechos RAG + resultados de cálculo
     - Verificar que rates citadas no texto correspondem às rates da Tool_Transicao
@@ -213,7 +213,7 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Arquivo: `tests/test_properties_justificativa.py`
     - **Validates: Requirements 7.4**
 
-  - [ ] 7.5 Implementar node `human_review` com interrupt
+  - [x] 7.5 Implementar node `human_review` com interrupt
     - Criar `src/graph/nodes/human_review.py`
     - Implementar interrupt no LangGraph — pausar execução até decisão humana
     - Apresentar resumo: valores por regime, delta, flag fallback, justificativa
@@ -234,7 +234,7 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Arquivo: `tests/test_properties_human_review.py`
     - **Validates: Requirements 10.6**
 
-- [ ] 8. Persistência, sessão e exportação
+- [x] 8. Persistência, sessão e exportação
   - [x] 8.1 Implementar SQLite checkpointer para sessão
     - Criar `src/persistence/checkpointer.py`
     - Persistir estado de simulação por thread_id (input, resultados, justificativa)
@@ -255,7 +255,7 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Arquivo: `tests/test_properties_sessao.py`
     - **Validates: Requirements 8.3**
 
-  - [ ] 8.4 Implementar node `export_result` e webhook n8n
+  - [x] 8.4 Implementar node `export_result` e webhook n8n
     - Criar `src/graph/nodes/export_result.py`
     - Persistir JSON final do ResultadoConsolidado
     - Disparar webhook para Webhook_N8n com payload: thread_id, delta_percentual, ano, valores, timestamp
@@ -268,8 +268,8 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Arquivo: `tests/test_properties_webhook.py`
     - **Validates: Requirements 14.1**
 
-- [ ] 9. API FastAPI e observabilidade
-  - [ ] 9.1 Implementar endpoints da API principal
+- [x] 9. API FastAPI e observabilidade
+  - [x] 9.1 Implementar endpoints da API principal
     - Criar `src/api/main.py` com FastAPI app
     - `POST /simular` — submete operação de frete para simulação
     - `GET /tools/tabela-transicao` — consulta alíquotas (wiring com tool)
@@ -277,7 +277,7 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - `GET /observabilidade/{thread_id}` — retorna timeline completa de execução
     - _Requirements: 5.1, 10.1, 11.4, 11.5_
 
-  - [ ] 9.2 Implementar sistema de logs estruturados
+  - [x] 9.2 Implementar sistema de logs estruturados
     - Criar `src/observability/logger.py`
     - Emitir JSON logs por node: thread_id, node_name, timestamp ISO 8601, duration_ms, status
     - Implementar tabela de auditoria SQLite: decisões humanas, eventos de segurança, fallback
@@ -290,11 +290,11 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Arquivo: `tests/test_properties_observabilidade.py`
     - **Validates: Requirements 11.1**
 
-- [ ] 10. Checkpoint — Validar API e observabilidade
+- [x] 10. Checkpoint — Validar API e observabilidade
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 11. Montagem do grafo LangGraph e integração end-to-end
-  - [ ] 11.1 Montar StateGraph completo
+- [x] 11. Montagem do grafo LangGraph e integração end-to-end
+  - [x] 11.1 Montar StateGraph completo
     - Criar `src/graph/graph.py`
     - Registrar todos os nodes no StateGraph
     - Configurar edges: parse → sanitize → route_regime → simular_regime_* → fan-out → agregar → retrieve_context → generate_justification → human_review → export_result
@@ -302,7 +302,7 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Configurar interrupt em human_review
     - _Requirements: 4.3, 6.1_
 
-  - [ ] 11.2 Implementar testes de integração end-to-end
+  - [x] 11.2 Implementar testes de integração end-to-end
     - Criar `tests/test_simulacao_integracao.py`
     - Testar fluxo completo: validação → cálculo paralelo (4 anos: 2026, 2027, 2030, 2033) → agregação → estrutura do resultado
     - Verificar presença de: valor_tributo_atual, valor_tributo_novo, delta_percentual, fonte, fallback_flag por ano
@@ -310,43 +310,43 @@ Implementação incremental do logitaxAgent — sistema híbrido agêntico (Lang
     - Tempo máximo: 120s
     - _Requirements: 12.2, 12.3_
 
-- [ ] 12. Scripts DevOps e documentação
-  - [ ] 12.1 Criar pipeline GitHub Actions
+- [x] 12. Scripts DevOps e documentação
+  - [x] 12.1 Criar pipeline GitHub Actions
     - Criar `.github/workflows/ci.yml`
     - Executar em sequência: lint (ruff), tests (pytest), build (install deps + import validation)
     - _Requirements: 13.1_
 
-  - [ ] 12.2 Criar script `scripts/analisar_logs_ci.py`
+  - [x] 12.2 Criar script `scripts/analisar_logs_ci.py`
     - Analisar logs de pelo menos 2 stages (lint e test) com IA
     - Output estruturado: stage_name, pass/fail, explicação (max 300 chars), severidade (critical/warning/info)
     - Fallback se serviço de IA indisponível: mensagem + exit code não-zero sem bloquear pipeline
     - _Requirements: 13.2, 13.5_
 
-  - [ ] 12.3 Criar script `scripts/simular_falhas_tool.py`
+  - [x] 12.3 Criar script `scripts/simular_falhas_tool.py`
     - Simular 3 tipos de falha na Tool_Transicao: timeout, resposta inválida, connection refused
     - Mínimo 10 requests por tipo de falha
     - Output: taxa de anomalia (failed/total) para stdout e `docs/devops/deteccao-anomalia.md`
     - Classificação de risco: low (<5%), medium (5–20%), high (>20%) com ação de mitigação
     - _Requirements: 13.3, 13.4_
 
-  - [ ] 12.4 Criar fluxo n8n e documentação
+  - [x] 12.4 Criar fluxo n8n e documentação
     - Criar `low-code/n8n-fluxo-alerta.json` com fluxo exportado
     - Configurar threshold Delta_Percentual (default 15%, configurável 1–100%)
     - Documentar no README: pré-requisitos, import step-by-step, payload exemplo, output esperado
     - _Requirements: 14.3, 14.4, 14.5_
 
-  - [ ] 12.5 Criar documentação de prompts e evidências
+  - [x] 12.5 Criar documentação de prompts e evidências
     - Criar docs em `docs/prompts/` com um arquivo por node LLM (generate_justification, route_intencao)
     - Cada arquivo: prompt text, behavior rules, output format, input variables
     - Criar `docs/evidencias/ciclo-refinamento.md` com: problema observado, mudança aplicada (ref commit/PR), resultado medido (before/after)
     - _Requirements: 15.1, 15.3_
 
-  - [ ] 12.6 Criar documentação de QA
+  - [x] 12.6 Criar documentação de QA
     - Criar `docs/qa/code-review-diff.md` com evidência de code review por IA em PR real (≥3 issues: bug/style/performance/security)
     - Criar `docs/qa/priorizacao-testes.md` com ranking de ≥3 cenários por risco (impacto financeiro + complexidade de cálculo)
     - _Requirements: 12.1, 12.4_
 
-- [ ] 13. Final checkpoint — Validação completa
+- [x] 13. Final checkpoint — Validação completa
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

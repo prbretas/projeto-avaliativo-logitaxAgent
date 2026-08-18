@@ -216,7 +216,8 @@ def retrieve_context(state: dict[str, Any]) -> dict[str, Any]:
     # Extract operation fields (support both Pydantic model and dict)
     if hasattr(operacao, "regime_tributario"):
         regime = operacao.regime_tributario
-        ano = operacao.data_referencia.year if hasattr(operacao.data_referencia, "year") else operacao.data_referencia
+        data_ref = operacao.data_referencia
+        ano = data_ref.year if hasattr(data_ref, "year") else data_ref
     else:
         regime = operacao["regime_tributario"]
         data_ref = operacao["data_referencia"]
