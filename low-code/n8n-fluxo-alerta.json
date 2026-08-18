@@ -1,0 +1,102 @@
+{
+  "name": "LogitaxAgent - Alerta Delta Tributário",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "logitax-webhook",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ Math.abs($json.delta_percentual) }}",
+              "operation": "largerEqual",
+              "value2": "={{ $env.DELTA_THRESHOLD_PCT || 15 }}"
+            }
+          ]
+        }
+      },
+      "id": "check-threshold",
+      "name": "Check Delta Threshold",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "channel": "#alertas-tributarios",
+        "text": "🚨 *Alerta LogitaxAgent*\n\n*Thread:* {{ $json.thread_id }}\n*Delta Percentual:* {{ $json.delta_percentual }}%\n*Timestamp:* {{ $json.timestamp }}\n\nImpacto significativo detectado na simulação IBS/CBS.",
+        "otherOptions": {}
+      },
+      "id": "send-alert",
+      "name": "Send Alert (Slack/Email)",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [600, 200],
+      "notes": "Configurar com credenciais Slack ou substituir por nó de email"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'alert_sent', thread_id: $json.thread_id }) }}"
+      },
+      "id": "response-alert",
+      "name": "Response (Alert Sent)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [800, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'below_threshold', thread_id: $json.thread_id, delta: $json.delta_percentual }) }}"
+      },
+      "id": "response-ok",
+      "name": "Response (Below Threshold)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [600, 400]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [{ "node": "Check Delta Threshold", "type": "main", "index": 0 }]
+      ]
+    },
+    "Check Delta Threshold": {
+      "main": [
+        [{ "node": "Send Alert (Slack/Email)", "type": "main", "index": 0 }],
+        [{ "node": "Response (Below Threshold)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Alert (Slack/Email)": {
+      "main": [
+        [{ "node": "Response (Alert Sent)", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "description": "Fluxo n8n para alertas de impacto tributário do LogitaxAgent. Dispara quando Delta_Percentual excede threshold configurável.",
+    "threshold_default": 15,
+    "threshold_range": "1-100%",
+    "payload_format": {
+      "thread_id": "string (UUID)",
+      "delta_percentual": "number (-100 a +100)",
+      "resultados_por_ano": "array",
+      "timestamp": "string (ISO 8601)"
+    }
+  }
+}
