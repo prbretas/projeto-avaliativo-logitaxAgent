@@ -286,10 +286,12 @@ async def _call_llm(prompt: str) -> str:
     api_key = os.environ.get("OPENAI_API_KEY", "")
     url = f"{LLM_ENDPOINT}/chat/completions"
 
-    headers = {
+    headers: dict[str, str] = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}",
     }
+    # Only add auth header if a real API key is configured (not "ollama" or empty)
+    if api_key and api_key.lower() != "ollama":
+        headers["Authorization"] = f"Bearer {api_key}"
 
     payload = {
         "model": LLM_MODEL_NAME,

@@ -160,12 +160,12 @@ Regras:
     }
 
     with httpx.Client(timeout=LLM_TIMEOUT) as client:
+        headers: dict[str, str] = {"Content-Type": "application/json"}
+        if api_key and api_key.lower() != "ollama":
+            headers["Authorization"] = f"Bearer {api_key}"
         response = client.post(
             f"{LLM_ENDPOINT}/chat/completions",
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {api_key}",
-            },
+            headers=headers,
             json=payload,
         )
         response.raise_for_status()
