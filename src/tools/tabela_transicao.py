@@ -22,6 +22,7 @@ from fastapi.responses import JSONResponse
 from src.models.erro import CampoInvalido, ErroEstruturado
 from src.models.operacao import ANO_MAXIMO, ANO_MINIMO, UFS_VALIDAS
 from src.models.tabela_transicao import TabelaTransicaoResponse
+from src.tools.icms_interestadual import consultar_icms_interestadual
 
 # Path to the local transition table JSON
 DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
@@ -142,4 +143,9 @@ async def consultar_tabela_transicao(
             content=erro_response.model_dump(mode="json"),
         )
 
-    return TabelaTransicaoResponse(**entrada)
+    return TabelaTransicaoResponse(
+        **entrada,
+        aliquota_icms_interestadual_pct=consultar_icms_interestadual(
+            uf_origem.upper(), uf_destino.upper()
+        ),
+    )

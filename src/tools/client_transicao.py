@@ -87,7 +87,7 @@ async def consultar_tabela_transicao(
     """
     # Local mode: skip HTTP entirely, use JSON file directly
     if TOOL_TRANSICAO_MODE == "local":
-        return _carregar_fallback_local(ano)
+        return _carregar_fallback_local(ano, uf_origem, uf_destino)
 
     # API mode: try HTTP endpoint with retries
     params = {
@@ -142,14 +142,20 @@ async def consultar_tabela_transicao(
         str(last_exception),
     )
 
-    return _carregar_fallback_local(ano)
+    return _carregar_fallback_local(ano, uf_origem, uf_destino)
 
 
-def _carregar_fallback_local(ano: int) -> ConsultaTransicaoResult:
+def _carregar_fallback_local(
+    ano: int,
+    uf_origem: str = "SP",
+    uf_destino: str = "RJ",
+) -> ConsultaTransicaoResult:
     """Load transition data from the local JSON fallback file.
 
     Args:
         ano: Reference year to look up in the local table.
+        uf_origem: Origin UF for ICMS interestadual lookup.
+        uf_destino: Destination UF for ICMS interestadual lookup.
 
     Returns:
         ConsultaTransicaoResult with fallback_usado=True and a warning message.
@@ -158,6 +164,8 @@ def _carregar_fallback_local(ano: int) -> ConsultaTransicaoResult:
         ValueError: If the requested year is not found in the local file.
         FileNotFoundError: If the local fallback file does not exist.
     """
+    from src.tools.icms_interestadual import consultar_icms_interestadual
+
     with open(TABELA_TRANSICAO_LOCAL_PATH, encoding="utf-8") as f:
         tabela: list[dict] = json.load(f)
 
@@ -167,6 +175,10 @@ def _carregar_fallback_local(ano: int) -> ConsultaTransicaoResult:
         raise ValueError(
             f"Ano {ano} não encontrado no arquivo de fallback local: {TABELA_TRANSICAO_LOCAL_PATH}"
         )
+
+    # Add ICMS interestadual rate
+    icms_rate = consultar_icms_interestadual(uf_origem, uf_destino)
+    entrada["aliquota_icms_interestadual_pct"] = icms_rate
 
     dados = TabelaTransicaoResponse(**entrada)
     versao = dados.versao
