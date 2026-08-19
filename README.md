@@ -10,44 +10,45 @@ Sistema **híbrido agêntico** (LangGraph) que simula o impacto financeiro da Re
 | **Público** | Analistas fiscais, gestores logísticos, transportadores |
 | **Objetivo** | Calcular e comparar carga tributária atual vs. nova por ano de transição, com justificativa legislativa |
 | **Valor** | Decisão informada sobre reajustes contratuais antes da transição avançar |
-| **Classificação** | **Sistema Híbrido** — fluxo determinístico calcula tributos; LLM apenas gera justificativa citando legislação |
+| **Classificação** | **Assistente Conversacional Híbrido** — cálculos determinísticos auditáveis + LLM para interpretação de intenção e justificativa legislativa |
 
 ## 2. Arquitetura e LangGraph
 
 ### Classificação: Sistema Híbrido Agêntico
 
 O LLM **nunca** calcula tributos. Ele atua apenas em:
+- Interpretação de intenção em linguagem natural (interface conversacional)
 - Geração de justificativa em linguagem natural (com citações legislativas)
-- Roteamento de intenção (se implementado com LLM)
+- Extração de parâmetros de simulação a partir de perguntas do usuário
 
 ### Diagrama de Arquitetura (StateGraph)
 
 ```
-[parse_operacao] → [sanitize_input] → [route_regime]
-                                            │
-                        ┌───────────────────┼───────────────────┐
-                        ▼                                       ▼
-          [simular_regime_regular]            [simular_regime_hibrido_simples]
-                        │                                       │
-                        └───────────────────┬───────────────────┘
-                                            ▼
-                                [check_reclassificacao]
-                                    │           │
-                            (ok)    ▼    (max 3) ▼
-                          [simular_anos]    [human_review]
-                               │                  │
-                               ▼            ┌─────┴─────┐
-                      [retrieve_context]    │ aprovado?  │
-                               │            ▼           ▼
-                               ▼       [export]       [END]
-                  [generate_justification]
-                               │
-                               ▼
-                        [human_review]
-                          │         │
-                    aprovado?    rejeitado?
-                          ▼         ▼
-                    [export_result] [END]
+[parse_operacao] → [sanitize_input] → [enriquecer_operacao] → [route_regime]
+                                                                      │
+                                          ┌───────────────────────────┼───────────────────────────┐
+                                          ▼                                                       ▼
+                            [simular_regime_regular]                            [simular_regime_hibrido_simples]
+                                          │                                                       │
+                                          └───────────────────────────┬───────────────────────────┘
+                                                                      ▼
+                                                          [check_reclassificacao]
+                                                              │           │
+                                                      (ok)    ▼    (max 3) ▼
+                                                    [simular_anos]    [human_review]
+                                                         │                  │
+                                                         ▼            ┌─────┴─────┐
+                                                [retrieve_context]    │ aprovado?  │
+                                                         │            ▼           ▼
+                                                         ▼       [export]       [END]
+                                            [generate_justification]
+                                                         │
+                                                         ▼
+                                                  [human_review]
+                                                    │         │
+                                              aprovado?    rejeitado?
+                                                    ▼         ▼
+                                              [export_result] [END]
 ```
 
 ### Componentes do Grafo
@@ -55,7 +56,7 @@ O LLM **nunca** calcula tributos. Ele atua apenas em:
 | Tipo | Evidência |
 |------|-----------|
 | **State tipado** | `AgentState` (Pydantic) com thread_id, operacao, resultados, etc. |
-| **Sequencial** | parse → sanitize → route → simulate → retrieve → justify → review |
+| **Sequencial** | parse → sanitize → enriquecer → route → simulate → retrieve → justify → review |
 | **Condicional** | `route_regime` (simples vs regular) + `check_reclassificacao` |
 | **Paralelização** | `simular_anos` executa 4 anos em paralelo (fan-out/fan-in) |
 | **Condição de parada** | `tentativas_reclassificacao` max 3 → força human_review |
@@ -69,8 +70,10 @@ O LLM **nunca** calcula tributos. Ele atua apenas em:
 |------|---------|
 | **Endpoint** | `GET /tools/tabela-transicao?ano=2026&uf_origem=SP&uf_destino=RJ&regime=lucro_real` |
 | **Validação** | Pydantic: ano 2026-2033, UFs válidas, regime válido |
+| **ICMS por UF** | Alíquota ICMS interestadual diferenciada por rota (CONFAZ): SP→RJ=12%, SP→BA=7% |
 | **Erro** | HTTP 422 com `ErroEstruturado` (campos_invalidos) |
 | **Resiliência** | Timeout 5s → retry 2x (backoff 1s, 2s) → fallback local JSON |
+| **Modo local** | `TOOL_TRANSICAO_MODE=local` usa JSON diretamente (sem HTTP, sem delay) |
 | **Versionamento** | Campo `versao` no response identifica fonte dos dados |
 
 ### Webhook n8n
@@ -152,14 +155,24 @@ cp .env.example .env
 # Editar .env com suas configurações (OPENAI_API_KEY, etc.)
 ```
 
+### Executar Interface Gráfica (Streamlit)
+```bash
+# Modo formulário (simulação visual com gráficos)
+streamlit run app_ui.py
+
+# Modo chat (assistente conversacional)
+streamlit run app_chat.py
+```
+
 ### Executar API
 ```bash
 uvicorn src.api.main:app --reload --port 8000
+# Swagger: http://localhost:8000/docs
 ```
 
 ### Executar Testes
 ```bash
-# Todos os testes (211 testes)
+# Todos os testes (212 testes)
 pytest tests/ -v
 
 # Apenas property tests
@@ -175,9 +188,10 @@ LLM_MODEL_NAME=gpt-4o-mini
 LLM_ENDPOINT=https://api.openai.com/v1
 OPENAI_API_KEY=sk-...
 CHROMADB_PATH=./data/chromadb
-SQLITE_PATH=./data/auditoria.db
-WEBHOOK_N8N_URL=http://localhost:5678/webhook/logitax-webhook
+SQLITE_PATH=./data/logitax.db
+WEBHOOK_N8N_URL=http://localhost:5678/webhook/simulacao-concluida
 DELTA_THRESHOLD_PCT=15
+TOOL_TRANSICAO_MODE=local
 ```
 
 ## 7. QA, Observabilidade e DevOps
@@ -185,10 +199,10 @@ DELTA_THRESHOLD_PCT=15
 ### Testes
 | Tipo | Quantidade | Framework |
 |------|-----------|-----------|
-| Unitários | 176 | pytest |
+| Unitários | 177 | pytest |
 | Property-based | 25 | Hypothesis |
 | Integração E2E | 10 | pytest + asyncio |
-| **Total** | **211** | |
+| **Total** | **212** | |
 
 ### Code Review com IA
 Documentado em `docs/qa/code-review-diff.md` — 4 issues identificadas (bug, style, performance, security).
@@ -316,11 +330,11 @@ POST /simular
 
 ### Limitações Conhecidas
 
-1. **ICMS simplificado** — usa alíquota fixa de 12% em vez da tabela CONFAZ por par de UFs (pode variar 7%–18%)
-2. **Alíquotas projetadas** — valores de IBS pleno (19.1%) são estimativas do CGIBS, não definitivos até resolução do Senado
-3. **LLM para justificativa** — requer API key e pode ter latência variável; sem API key, justificativa não é gerada
-4. **ChromaDB local** — base de conhecimento precisa ser re-indexada manualmente quando legislação muda
-5. **Human-in-the-loop síncrono** — timeout de 24h; sem mecanismo de delegação
+1. **Alíquotas projetadas** — valores de IBS pleno (19.1%) são estimativas do CGIBS, não definitivos até resolução do Senado
+2. **LLM para justificativa** — requer API key e pode ter latência variável; sem API key, justificativa não é gerada (comentário determinístico ainda funciona)
+3. **ChromaDB local** — base de conhecimento precisa ser re-indexada manualmente quando legislação muda
+4. **Human-in-the-loop síncrono** — timeout de 24h; sem mecanismo de delegação
+5. **ICMS intraestadual simplificado** — operações dentro do mesmo estado usam alíquota interna genérica (pode variar por produto)
 
 ### Ciclo de Refinamento
 
@@ -332,10 +346,10 @@ Documentado em `docs/evidencias/ciclo-refinamento.md` — 4 ciclos reais:
 
 ### Evoluções Futuras
 
-- Tabela CONFAZ completa de ICMS por par de UFs
-- Interface web (Streamlit/Gradio) para demonstração visual
 - Integração com e-Financeira para dados reais de CT-e
 - Multi-tenancy com autenticação JWT
+- Consulta a APIs oficiais quando disponíveis (substituir projeções por dados definitivos)
+- Dashboard BI com histórico de simulações por rota/regime
 
 ## 11. Integrabilidade
 
@@ -369,7 +383,6 @@ O logitaxAgent é **API-first** — desenhado para ser consumido como microsserv
 ### Limitações (escopo futuro)
 
 - Sem conector específico para nenhum ERP (sistema é agnóstico)
-- Sem interface embarcada — consumo via API REST
 - Sem sincronização bidirecional de dados mestres
 
 ## 12. Link do Vídeo
@@ -381,18 +394,22 @@ O logitaxAgent é **API-first** — desenhado para ser consumido como microsserv
 ## Estrutura do Projeto
 
 ```
+app_ui.py             # Interface visual (formulário + gráficos)
+app_chat.py           # Interface conversacional (chat com linguagem natural)
 src/
-├── api/              # Endpoints FastAPI
+├── api/              # Endpoints FastAPI (/simular, /simular-review, /review, /observabilidade)
+├── chat/             # Módulo de chat (extração de intent, parsing de parâmetros)
 ├── graph/            # LangGraph StateGraph
-│   ├── graph.py      # Montagem completa do grafo (11 nodes)
+│   ├── graph.py      # Montagem completa do grafo (12 nodes)
+│   ├── state.py      # AgentGraphState (TypedDict)
 │   └── nodes/        # Nodes individuais
 ├── models/           # Modelos Pydantic (OperacaoFrete, AgentState, etc.)
 ├── observability/    # Logs estruturados + auditoria SQLite
 ├── persistence/      # SQLite checkpointer (sessão TTL 72h)
-└── tools/            # Tool_Transicao (endpoint + client com fallback)
-tests/                # 211 testes (unitários + property + integração)
-scripts/              # DevOps (análise CI, simulação falhas, ingestão RAG)
-data/                 # Tabela transição JSON + ChromaDB
+└── tools/            # Tool_Transicao (endpoint + client) + ICMS interestadual (CONFAZ)
+tests/                # 212 testes (unitários + property + integração)
+scripts/              # DevOps (análise CI, simulação falhas, ingestão RAG, atualização tabela)
+data/                 # Tabela transição JSON + ICMS CONFAZ + ChromaDB
 docs/                 # Documentação (prompts, QA, evidências, DevOps)
 low-code/             # Fluxo n8n exportado
 .github/workflows/    # Pipeline CI (lint → test → build)
