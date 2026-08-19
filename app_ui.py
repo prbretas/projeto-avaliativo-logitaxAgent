@@ -218,57 +218,40 @@ with tab_simular:
                 if detalhe_novo and not detalhe_novo.get("oficial", True):
                     st.caption("📊 Alíquotas estimadas")
 
-        # --- Detalhamento de impostos ---
+        # --- Tabela comparativa de impostos ---
         st.divider()
-        st.subheader("📋 Detalhamento de Impostos")
+        st.subheader("📋 Tabela Comparativa de Impostos")
 
+        # Build comparison table data
+        table_rows = []
         for r in resultados:
             rd = r.model_dump() if hasattr(r, "model_dump") else r
+            da = rd.get("detalhe_regime_atual", {})
+            dn = rd.get("detalhe_regime_novo", {})
             ano = rd["ano"]
-            with st.expander(f"📅 Ano {ano} — Detalhes"):
-                col_atual, col_novo = st.columns(2)
-                detalhe_atual = rd.get("detalhe_regime_atual", {})
-                with col_atual:
-                    st.markdown("**Regime Atual (PIS+COFINS+ICMS)**")
-                    if detalhe_atual:
-                        st.markdown(
-                            f"- PIS: {detalhe_atual.get('pis_aliquota_pct', 0)}% "
-                            f"= R$ {detalhe_atual.get('pis_valor', 0):.2f}"
-                        )
-                        st.markdown(
-                            f"- COFINS: {detalhe_atual.get('cofins_aliquota_pct', 0)}% "
-                            f"= R$ {detalhe_atual.get('cofins_valor', 0):.2f}"
-                        )
-                        st.markdown(
-                            f"- ICMS: {detalhe_atual.get('icms_aliquota_pct', 0)}% "
-                            f"= R$ {detalhe_atual.get('icms_valor', 0):.2f}"
-                        )
-                        st.markdown(f"- **Total: R$ {detalhe_atual.get('total', 0):.2f}**")
+            destaque = "⭐ " if ano == ano_ref else ""
+            table_rows.append(
+                {
+                    "Ano": f"{destaque}{ano}",
+                    "PIS (1,65%)": f"R$ {da.get('pis_valor', 0):,.2f}",
+                    "COFINS (7,6%)": f"R$ {da.get('cofins_valor', 0):,.2f}",
+                    f"ICMS ({da.get('icms_aliquota_pct', 12)}%)": f"R$ {da.get('icms_valor', 0):,.2f}",
+                    "Total Atual": f"R$ {rd['valor_tributo_atual']:,.2f}",
+                    f"CBS ({dn.get('cbs_aliquota_pct', 0)}%)": f"R$ {dn.get('cbs_valor', 0):,.2f}",
+                    f"IBS ({dn.get('ibs_aliquota_pct', 0)}%)": f"R$ {dn.get('ibs_valor', 0):,.2f}",
+                    f"ICMS res. ({dn.get('icms_residual_aliquota_pct', 0)}%)": (
+                        f"R$ {dn.get('icms_residual_valor', 0):,.2f}"
+                    ),
+                    "Total Novo": f"R$ {rd['valor_tributo_novo']:,.2f}",
+                    "Variação": f"{rd['delta_percentual']:+.2f}%",
+                    "Impacto": rd.get("economia_ou_aumento", ""),
+                }
+            )
 
-                detalhe_novo = rd.get("detalhe_regime_novo", {})
-                with col_novo:
-                    st.markdown("**Regime Novo (IBS+CBS+ICMS residual)**")
-                    if detalhe_novo:
-                        st.markdown(
-                            f"- CBS: {detalhe_novo.get('cbs_aliquota_pct', 0)}% "
-                            f"= R$ {detalhe_novo.get('cbs_valor', 0):.2f}"
-                        )
-                        st.markdown(
-                            f"- IBS: {detalhe_novo.get('ibs_aliquota_pct', 0)}% "
-                            f"= R$ {detalhe_novo.get('ibs_valor', 0):.2f}"
-                        )
-                        st.markdown(
-                            f"- ICMS residual: "
-                            f"{detalhe_novo.get('icms_residual_aliquota_pct', 0)}% "
-                            f"= R$ {detalhe_novo.get('icms_residual_valor', 0):.2f}"
-                        )
-                        st.markdown(f"- **Total: R$ {detalhe_novo.get('total', 0):.2f}**")
-                        if not detalhe_novo.get("oficial", True):
-                            st.caption("⚠️ Alíquotas são projeções (não oficiais)")
+        import pandas as pd
 
-                economia = rd.get("economia_ou_aumento", "")
-                if economia:
-                    st.markdown(f"**Resultado:** {economia}")
+        df = pd.DataFrame(table_rows)
+        st.dataframe(df, use_container_width=True, hide_index=True)
 
         # --- Justificativa legislativa ---
         if justificativa:
