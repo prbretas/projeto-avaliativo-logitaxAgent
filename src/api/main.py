@@ -76,6 +76,7 @@ class SimularResponse(BaseModel):
     justificativa: str | None = None
     comentario_agente: str | None = None
     alertas: list[str] = Field(default_factory=list)
+    review_summary: dict[str, Any] | None = None
 
 
 class ReviewRequest(BaseModel):
@@ -321,6 +322,145 @@ async def simular(request: SimularRequest) -> SimularResponse:
         justificativa=justificativa,
         comentario_agente=comentario_agente,
         alertas=alertas,
+    )
+
+
+@app.post(
+    "/simular-review",
+    response_model=SimularResponse,
+    status_code=202,
+    responses={422: {"model": ErroEstruturado}},
+)
+async def simular_com_review(request: SimularRequest) -> SimularResponse:
+    """Submete operação e executa grafo com interrupt em human_review.
+
+    Executa o grafo até human_review (interrupt), persiste estado como
+    "awaiting_review" e retorna resultados parciais. O usuário deve
+    chamar POST /review/{thread_id} para aprovar ou rejeitar.
+
+    Fluxo: parse → sanitize → enriquecer → route → simular_regime →
+    check_reclassificacao → simular_anos → retrieve_context →
+    generate_justification → [PAUSA] human_review → (aguarda aprovação)
+    """
+    thread_id = str(uuid.uuid4())
+
+    # Validate operation
+    try:
+        operacao = OperacaoFrete(
+            modal=request.modal,
+            origem_uf=request.origem_uf,
+            destino_uf=request.destino_uf,
+            regime_tributario=request.regime_tributario,
+            valor_frete=request.valor_frete,
+            data_referencia=request.data_referencia,
+            observacoes=request.observacoes,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "erro": "Validação falhou",
+                "campos_invalidos": str(e),
+                "thread_id": thread_id,
+                "timestamp": datetime.now(UTC).isoformat(),
+            },
+        )
+
+    log_audit_event(
+        thread_id=thread_id,
+        event_type="simulacao",
+        node_name="api_simular_review",
+        status="started",
+        details=f"modal={request.modal}, {request.origem_uf}→{request.destino_uf}, "
+        f"regime={request.regime_tributario}, valor={request.valor_frete}",
+    )
+
+    # Prepare initial state — aprovado_humano=None (pending)
+    initial_state: dict[str, Any] = {
+        "operacao": operacao,
+        "thread_id": thread_id,
+        "tentativas_reclassificacao": 0,
+        "revisao_manual": False,
+        "resultados_por_ano": [],
+        "trechos_rag": [],
+        "justificativa": None,
+        "alertas": [],
+        "aprovado_humano": None,  # Pending human review
+    }
+
+    # Execute graph with interrupt before human_review
+    try:
+        partial_state = await _execute_graph_with_interrupt(initial_state)
+    except Exception as e:
+        logger.error(
+            "Graph execution failed (thread_id=%s): %s",
+            thread_id,
+            str(e),
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "erro": "Falha na execução do grafo",
+                "thread_id": thread_id,
+                "detalhes": str(e),
+            },
+        )
+
+    # Extract results from partial state (before human_review)
+    resultados_por_ano = partial_state.get("resultados_por_ano", [])
+    justificativa = partial_state.get("justificativa")
+    comentario_agente = partial_state.get("comentario_agente")
+    alertas = partial_state.get("alertas", [])
+
+    # Serialize resultados
+    resultados_serialized = []
+    for r in resultados_por_ano:
+        if hasattr(r, "model_dump"):
+            resultados_serialized.append(r.model_dump())
+        elif isinstance(r, dict):
+            resultados_serialized.append(r)
+
+    # Build review summary
+    from src.graph.nodes.human_review import get_review_summary
+
+    review_summary = get_review_summary(partial_state)
+
+    # Persist state as awaiting_review
+    state_to_persist = {
+        "thread_id": thread_id,
+        "operacao": operacao.model_dump(mode="json")
+        if hasattr(operacao, "model_dump")
+        else operacao,
+        "resultados_por_ano": resultados_serialized,
+        "justificativa": justificativa,
+        "comentario_agente": comentario_agente,
+        "alertas": alertas,
+        "aprovado_humano": None,
+        "export_status": "awaiting_review",
+        "trechos_rag": partial_state.get("trechos_rag", []),
+        "review_summary": review_summary,
+        "created_at": datetime.now(UTC).isoformat(),
+    }
+    checkpointer.save(thread_id, state_to_persist)
+
+    log_audit_event(
+        thread_id=thread_id,
+        event_type="simulacao",
+        node_name="api_simular_review",
+        status="awaiting_review",
+        details=f"resultados={len(resultados_serialized)} anos, aguardando aprovação humana",
+    )
+
+    return SimularResponse(
+        thread_id=thread_id,
+        status="awaiting_review",
+        message="Simulação concluída. Aguardando aprovação humana via POST /review/{thread_id}.",
+        resultados_por_ano=resultados_serialized,
+        justificativa=justificativa,
+        comentario_agente=comentario_agente,
+        alertas=alertas,
+        review_summary=review_summary,
     )
 
 
