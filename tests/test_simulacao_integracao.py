@@ -14,26 +14,23 @@ Requirements: 12.2, 12.3
 
 from __future__ import annotations
 
-import os
 from datetime import date
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch
 
 import pytest
 
-from src.graph.nodes.parse_operacao import parse_operacao
-from src.graph.nodes.sanitize_input import sanitize_input
-from src.graph.nodes.route_regime import route_regime
 from src.graph.graph import _route_by_regime
-from src.graph.nodes.simular_regime import (
-    simular_regime_regular,
-    simular_regime_hibrido_simples,
-)
-from src.graph.nodes.simular_ano import simular_ano
-from src.graph.nodes.retrieve_context import retrieve_context
-from src.graph.nodes.human_review import human_review
 from src.graph.nodes.export_result import export_result
+from src.graph.nodes.human_review import human_review
+from src.graph.nodes.parse_operacao import parse_operacao
+from src.graph.nodes.retrieve_context import retrieve_context
+from src.graph.nodes.sanitize_input import sanitize_input
+from src.graph.nodes.simular_ano import simular_ano
+from src.graph.nodes.simular_regime import (
+    simular_regime_hibrido_simples,
+    simular_regime_regular,
+)
 from src.models.operacao import OperacaoFrete
-
 
 # --- Fixtures ---
 
@@ -105,10 +102,10 @@ class TestFluxoCompleto:
     @pytest.mark.asyncio
     async def test_fluxo_simulacao_4_anos_lucro_real(self, operacao_valida_lucro_real):
         """Test: full simulation with 4 milestone years for Lucro Real.
-        
+
         Patches the tool client to use fallback directly.
         """
-        from src.tools.client_transicao import _carregar_fallback_local, ConsultaTransicaoResult
+        from src.tools.client_transicao import _carregar_fallback_local
 
         async def mock_consultar(ano, uf_origem, uf_destino, regime, **kwargs):
             """Mock that goes straight to local fallback."""
@@ -134,8 +131,10 @@ class TestFluxoCompleto:
         # Simulate years with mocked tool client
         state["tentativas_reclassificacao"] = 0
         state["revisao_manual"] = False
-        
-        with patch("src.graph.nodes.simular_ano.consultar_tabela_transicao", side_effect=mock_consultar):
+
+        with patch(
+            "src.graph.nodes.simular_ano.consultar_tabela_transicao", side_effect=mock_consultar
+        ):
             anos_result = await simular_ano(state)
             state.update(anos_result)
 
@@ -164,7 +163,7 @@ class TestFluxoCompleto:
             assert rd["valor_tributo_atual"] > 0
             assert rd["valor_tributo_novo"] >= 0
             # Delta can be negative (reduction)
-            assert isinstance(rd["delta_percentual"], (int, float))
+            assert isinstance(rd["delta_percentual"], int | float)
 
         assert anos_retornados == anos_esperados
 
@@ -192,7 +191,9 @@ class TestFluxoCompleto:
         state["tentativas_reclassificacao"] = 0
         state["revisao_manual"] = False
 
-        with patch("src.graph.nodes.simular_ano.consultar_tabela_transicao", side_effect=mock_consultar):
+        with patch(
+            "src.graph.nodes.simular_ano.consultar_tabela_transicao", side_effect=mock_consultar
+        ):
             anos_result = await simular_ano(state)
             state.update(anos_result)
 
@@ -232,7 +233,12 @@ class TestFluxoCompleto:
                 "valor_frete": 10000.00,
             },
             "resultados_por_ano": [
-                {"ano": 2026, "valor_tributo_atual": 2125.0, "valor_tributo_novo": 100.0, "delta_percentual": -95.29}
+                {
+                    "ano": 2026,
+                    "valor_tributo_atual": 2125.0,
+                    "valor_tributo_novo": 100.0,
+                    "delta_percentual": -95.29,
+                }
             ],
             "justificativa": "Justificativa de teste",
             "alertas": [],
@@ -269,7 +275,12 @@ class TestFluxoCompleto:
                 "valor_frete": 10000.00,
             },
             "resultados_por_ano": [
-                {"ano": 2026, "valor_tributo_atual": 2125.0, "valor_tributo_novo": 100.0, "delta_percentual": -95.29}
+                {
+                    "ano": 2026,
+                    "valor_tributo_atual": 2125.0,
+                    "valor_tributo_novo": 100.0,
+                    "delta_percentual": -95.29,
+                }
             ],
             "justificativa": "Aprovado",
             "trechos_rag": [],
@@ -317,7 +328,9 @@ class TestFallbackScenario:
         state["revisao_manual"] = False
 
         # Simulate with forced fallback
-        with patch("src.graph.nodes.simular_ano.consultar_tabela_transicao", side_effect=mock_consultar):
+        with patch(
+            "src.graph.nodes.simular_ano.consultar_tabela_transicao", side_effect=mock_consultar
+        ):
             anos_result = await simular_ano(state)
             state.update(anos_result)
 

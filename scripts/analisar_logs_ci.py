@@ -193,7 +193,9 @@ def main():
         full_input = sys.stdin.read() if not sys.stdin.isatty() else ""
         # Split by stage markers if present
         lint_log = full_input if "ruff" in full_input.lower() else ""
-        test_log = full_input if "pytest" in full_input.lower() or "passed" in full_input.lower() else ""
+        has_pytest = "pytest" in full_input.lower()
+        has_passed = "passed" in full_input.lower()
+        test_log = full_input if has_pytest or has_passed else ""
 
     # Analyze stages
     analyses: list[StageAnalysis] = []
@@ -227,8 +229,7 @@ def main():
         analyses = analyze_with_ai(analyses)
     except Exception as e:
         print(
-            f"AVISO: Serviço de IA indisponível ({e}). "
-            "Usando análise baseada em regex.",
+            f"AVISO: Serviço de IA indisponível ({e}). Usando análise baseada em regex.",
             file=sys.stderr,
         )
 
@@ -237,9 +238,7 @@ def main():
     print(json.dumps(output, ensure_ascii=False, indent=2))
 
     # Exit code: non-zero if any critical failures
-    has_critical = any(
-        a.severidade == "critical" and a.status == "fail" for a in analyses
-    )
+    has_critical = any(a.severidade == "critical" and a.status == "fail" for a in analyses)
     if has_critical:
         sys.exit(1)
 

@@ -201,9 +201,7 @@ def calcular_delta_percentual(valor_atual: float, valor_novo: float) -> float:
     Requirements: 2.6
     """
     if valor_atual == 0:
-        raise ValueError(
-            "valor_tributo_atual não pode ser zero para cálculo de delta percentual"
-        )
+        raise ValueError("valor_tributo_atual não pode ser zero para cálculo de delta percentual")
     delta = ((valor_novo - valor_atual) / valor_atual) * 100
     return round(delta, 2)
 

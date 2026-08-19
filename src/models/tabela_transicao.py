@@ -57,7 +57,5 @@ class TabelaTransicaoResponse(BaseModel):
     def validar_ano(cls, v: int) -> int:
         """Validate year is within the transition period."""
         if v < ANO_MINIMO or v > ANO_MAXIMO:
-            raise ValueError(
-                f"Ano {v} fora do intervalo suportado [{ANO_MINIMO}, {ANO_MAXIMO}]"
-            )
+            raise ValueError(f"Ano {v} fora do intervalo suportado [{ANO_MINIMO}, {ANO_MAXIMO}]")
         return v

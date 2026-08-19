@@ -8,10 +8,37 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator
 
 # Valid Brazilian UF codes (27 states + DF)
-UFS_VALIDAS = frozenset([
-    "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT",
-    "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO",
-])
+UFS_VALIDAS = frozenset(
+    [
+        "AC",
+        "AL",
+        "AM",
+        "AP",
+        "BA",
+        "CE",
+        "DF",
+        "ES",
+        "GO",
+        "MA",
+        "MG",
+        "MS",
+        "MT",
+        "PA",
+        "PB",
+        "PE",
+        "PI",
+        "PR",
+        "RJ",
+        "RN",
+        "RO",
+        "RR",
+        "RS",
+        "SC",
+        "SE",
+        "SP",
+        "TO",
+    ]
+)
 
 # Valid year range for the transition period
 ANO_MINIMO = 2026
@@ -76,9 +103,7 @@ class OperacaoFrete(BaseModel):
         """Validate that UF is one of the 27 valid Brazilian state codes."""
         v_upper = v.upper()
         if v_upper not in UFS_VALIDAS:
-            raise ValueError(
-                f"UF '{v}' inválida. UFs válidas: {sorted(UFS_VALIDAS)}"
-            )
+            raise ValueError(f"UF '{v}' inválida. UFs válidas: {sorted(UFS_VALIDAS)}")
         return v_upper
 
     @field_validator("data_referencia")

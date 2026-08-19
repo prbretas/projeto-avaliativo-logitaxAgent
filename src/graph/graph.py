@@ -17,21 +17,20 @@ from typing import Any
 
 from langgraph.graph import END, StateGraph
 
-from src.graph.nodes.parse_operacao import parse_operacao
-from src.graph.nodes.sanitize_input import sanitize_input
+from src.graph.nodes.check_reclassificacao import check_reclassificacao
 from src.graph.nodes.enriquecer_operacao import enriquecer_operacao
-from src.graph.nodes.route_regime import route_regime
-from src.graph.nodes.simular_regime import (
-    simular_regime_regular,
-    simular_regime_hibrido_simples,
-)
-from src.graph.nodes.simular_ano import simular_ano
-from src.graph.nodes.retrieve_context import retrieve_context
+from src.graph.nodes.export_result import export_result
 from src.graph.nodes.generate_justification import generate_justification
 from src.graph.nodes.human_review import human_review
-from src.graph.nodes.export_result import export_result
-from src.graph.nodes.check_reclassificacao import check_reclassificacao
-
+from src.graph.nodes.parse_operacao import parse_operacao
+from src.graph.nodes.retrieve_context import retrieve_context
+from src.graph.nodes.route_regime import route_regime
+from src.graph.nodes.sanitize_input import sanitize_input
+from src.graph.nodes.simular_ano import simular_ano
+from src.graph.nodes.simular_regime import (
+    simular_regime_hibrido_simples,
+    simular_regime_regular,
+)
 
 # --- Routing Functions ---
 

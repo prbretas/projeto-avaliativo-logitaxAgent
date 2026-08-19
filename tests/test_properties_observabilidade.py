@@ -11,15 +11,18 @@ import logging
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from src.observability.logger import StructuredLogFormatter, NodeLogger
-
+from src.observability.logger import StructuredLogFormatter
 
 # --- Property 18: Structured logs contain all required fields ---
 
 
 @given(
-    thread_id=st.text(min_size=1, max_size=36, alphabet=st.characters(whitelist_categories=("L", "N"))),
-    node_name=st.sampled_from(["parse_operacao", "sanitize_input", "route_regime", "simular_ano", "human_review"]),
+    thread_id=st.text(
+        min_size=1, max_size=36, alphabet=st.characters(whitelist_categories=("L", "N"))
+    ),
+    node_name=st.sampled_from(
+        ["parse_operacao", "sanitize_input", "route_regime", "simular_ano", "human_review"]
+    ),
 )
 @settings(max_examples=50)
 def test_structured_logs_contain_required_fields(thread_id, node_name):

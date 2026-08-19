@@ -5,12 +5,12 @@ Property 8: Tool validation rejects invalid parameters.
 Validates: Requirements 5.2, 5.3, 5.4
 """
 
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 from hypothesis import given, settings
 from hypothesis import strategies as st
-from fastapi.testclient import TestClient
 
 from src.tools.tabela_transicao import router
-from fastapi import FastAPI
 
 # Create test app with tool router
 test_app = FastAPI()
@@ -45,7 +45,38 @@ def test_invalid_year_above_range_rejected(ano):
 
 @given(
     uf=st.text(min_size=2, max_size=2, alphabet=st.characters(whitelist_categories=("Lu",))).filter(
-        lambda x: x not in {"AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"}
+        lambda x: (
+            x
+            not in {
+                "AC",
+                "AL",
+                "AM",
+                "AP",
+                "BA",
+                "CE",
+                "DF",
+                "ES",
+                "GO",
+                "MA",
+                "MG",
+                "MS",
+                "MT",
+                "PA",
+                "PB",
+                "PE",
+                "PI",
+                "PR",
+                "RJ",
+                "RN",
+                "RO",
+                "RR",
+                "RS",
+                "SC",
+                "SE",
+                "SP",
+                "TO",
+            }
+        )
     )
 )
 @settings(max_examples=30)
@@ -70,4 +101,6 @@ def test_invalid_regime_rejected(regime):
         "/tools/tabela-transicao",
         params={"ano": 2026, "uf_origem": "SP", "uf_destino": "RJ", "regime": regime},
     )
-    assert response.status_code == 422, f"Regime '{regime}' should be rejected, got {response.status_code}"
+    assert response.status_code == 422, (
+        f"Regime '{regime}' should be rejected, got {response.status_code}"
+    )

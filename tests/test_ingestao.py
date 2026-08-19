@@ -1,6 +1,5 @@
 """Tests for the ChromaDB ingestion script (scripts/run_ingestao.py)."""
 
-import os
 import shutil
 import tempfile
 
@@ -155,7 +154,9 @@ class TestChunksIntegrity:
             meta = chunk["metadata"]
             assert "source_law" in meta, f"Chunk '{chunk['id']}' missing source_law"
             assert "article_number" in meta, f"Chunk '{chunk['id']}' missing article_number"
-            assert "applicable_year_range" in meta, f"Chunk '{chunk['id']}' missing applicable_year_range"
+            assert "applicable_year_range" in meta, (
+                f"Chunk '{chunk['id']}' missing applicable_year_range"
+            )
 
     def test_documents_are_non_empty(self):
         """Verify no chunk has an empty document text."""

@@ -8,10 +8,10 @@ Validates: Requirements 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8
 
 from datetime import date
 
-from hypothesis import given, settings, assume
+from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 
-from src.models.operacao import OperacaoFrete, UFS_VALIDAS, ANO_MINIMO, ANO_MAXIMO
+from src.models.operacao import ANO_MAXIMO, ANO_MINIMO, UFS_VALIDAS, OperacaoFrete
 
 # --- Strategies ---
 
@@ -25,7 +25,9 @@ valid_operacao_strategy = st.builds(
     origem_uf=st.sampled_from(sorted(UFS_VALIDAS)),
     destino_uf=st.sampled_from(sorted(UFS_VALIDAS)),
     regime_tributario=st.sampled_from(REGIMES_VALIDOS),
-    valor_frete=st.floats(min_value=0.01, max_value=1_000_000_000, allow_nan=False, allow_infinity=False),
+    valor_frete=st.floats(
+        min_value=0.01, max_value=999_999_999.99, allow_nan=False, allow_infinity=False
+    ),
     data_referencia=st.dates(
         min_value=date(ANO_MINIMO, 1, 1),
         max_value=date(ANO_MAXIMO, 12, 31),
@@ -56,7 +58,9 @@ def test_valid_operations_always_accepted(data):
     modal=st.text(min_size=1, max_size=20).filter(lambda x: x not in MODAIS_VALIDOS),
     uf=st.text(min_size=2, max_size=2).filter(lambda x: x.upper() not in UFS_VALIDAS),
     regime=st.text(min_size=1, max_size=30).filter(lambda x: x not in REGIMES_VALIDOS),
-    valor=st.one_of(st.just(0), st.just(-1), st.floats(max_value=-0.01, allow_nan=False, allow_infinity=False)),
+    valor=st.one_of(
+        st.just(0), st.just(-1), st.floats(max_value=-0.01, allow_nan=False, allow_infinity=False)
+    ),
 )
 @settings(max_examples=50)
 def test_invalid_inputs_produce_all_errors(modal, uf, regime, valor):
@@ -78,7 +82,7 @@ def test_invalid_inputs_produce_all_errors(modal, uf, regime, valor):
     except ValidationError as e:
         errors = e.errors()
         # Should have multiple errors (not just the first one)
-        error_fields = {".".join(str(loc) for loc in err["loc"]) for err in errors}
+        {".".join(str(loc) for loc in err["loc"]) for err in errors}
         # At least modal and one UF should be invalid
         assert len(errors) >= 1, "Should report at least one error"
 

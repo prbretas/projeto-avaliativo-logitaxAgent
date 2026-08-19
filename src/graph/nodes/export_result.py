@@ -11,10 +11,9 @@ Requirements: 10.3, 14.1, 14.2
 
 from __future__ import annotations
 
-import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -55,12 +54,14 @@ def _build_webhook_payload(state: dict[str, Any]) -> dict[str, Any]:
         else:
             rd = dict(r) if r else {}
 
-        resultados_payload.append({
-            "ano": rd.get("ano"),
-            "valor_tributo_atual": rd.get("valor_tributo_atual"),
-            "valor_tributo_novo": rd.get("valor_tributo_novo"),
-            "delta_percentual": rd.get("delta_percentual"),
-        })
+        resultados_payload.append(
+            {
+                "ano": rd.get("ano"),
+                "valor_tributo_atual": rd.get("valor_tributo_atual"),
+                "valor_tributo_novo": rd.get("valor_tributo_novo"),
+                "delta_percentual": rd.get("delta_percentual"),
+            }
+        )
 
     # Global delta (use last year or max delta)
     delta_global = None
@@ -75,7 +76,7 @@ def _build_webhook_payload(state: dict[str, Any]) -> dict[str, Any]:
         "thread_id": thread_id,
         "delta_percentual": delta_global,
         "resultados_por_ano": resultados_payload,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -114,7 +115,7 @@ def _build_consolidated_result(state: dict[str, Any]) -> dict[str, Any]:
         "aprovado_humano": state.get("aprovado_humano"),
         "trechos_rag": state.get("trechos_rag", []),
         "alertas": state.get("alertas", []),
-        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "exported_at": datetime.now(UTC).isoformat(),
     }
 
 
@@ -130,10 +131,7 @@ async def _send_webhook(payload: dict[str, Any]) -> bool:
     webhook_url = _get_webhook_url()
 
     if not webhook_url:
-        logger.warning(
-            "export_result: WEBHOOK_N8N_URL não configurada, "
-            "webhook não será enviado"
-        )
+        logger.warning("export_result: WEBHOOK_N8N_URL não configurada, webhook não será enviado")
         return False
 
     try:
@@ -145,16 +143,14 @@ async def _send_webhook(payload: dict[str, Any]) -> bool:
             )
             if response.status_code < 300:
                 logger.info(
-                    "export_result: webhook enviado com sucesso "
-                    "(status=%d, thread_id=%s)",
+                    "export_result: webhook enviado com sucesso (status=%d, thread_id=%s)",
                     response.status_code,
                     payload.get("thread_id"),
                 )
                 return True
             else:
                 logger.warning(
-                    "export_result: webhook retornou status %d "
-                    "(thread_id=%s)",
+                    "export_result: webhook retornou status %d (thread_id=%s)",
                     response.status_code,
                     payload.get("thread_id"),
                 )
@@ -237,10 +233,7 @@ def _send_webhook_sync(payload: dict[str, Any]) -> bool:
     webhook_url = _get_webhook_url()
 
     if not webhook_url:
-        logger.warning(
-            "export_result: WEBHOOK_N8N_URL não configurada, "
-            "webhook não será enviado"
-        )
+        logger.warning("export_result: WEBHOOK_N8N_URL não configurada, webhook não será enviado")
         return False
 
     try:
@@ -252,8 +245,7 @@ def _send_webhook_sync(payload: dict[str, Any]) -> bool:
             )
             if response.status_code < 300:
                 logger.info(
-                    "export_result: webhook enviado com sucesso "
-                    "(status=%d, thread_id=%s)",
+                    "export_result: webhook enviado com sucesso (status=%d, thread_id=%s)",
                     response.status_code,
                     payload.get("thread_id"),
                 )

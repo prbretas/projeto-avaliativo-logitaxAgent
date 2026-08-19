@@ -91,9 +91,7 @@ class ResultadoAno(BaseModel):
     def validar_ano(cls, v: int) -> int:
         """Validate year is within the transition period."""
         if v < ANO_MINIMO or v > ANO_MAXIMO:
-            raise ValueError(
-                f"Ano {v} fora do intervalo suportado [{ANO_MINIMO}, {ANO_MAXIMO}]"
-            )
+            raise ValueError(f"Ano {v} fora do intervalo suportado [{ANO_MINIMO}, {ANO_MAXIMO}]")
         return v
 
 
@@ -121,7 +119,9 @@ class ResultadoConsolidado(BaseModel):
     )
     comentario_agente: str = Field(
         default="",
-        description="Análise contextualizada do agente: resumo do impacto, causa, recomendação e avisos",
+        description=(
+            "Análise contextualizada do agente: resumo do impacto, causa, recomendação e avisos"
+        ),
     )
     fontes_citadas: list[str] = Field(
         default_factory=list,

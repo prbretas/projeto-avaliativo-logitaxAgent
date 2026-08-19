@@ -21,9 +21,7 @@ class RegistroAuditoria(BaseModel):
         ...,
         description="Identificador da sessão/thread correlacionada",
     )
-    evento: Literal[
-        "aprovacao", "rejeicao", "seguranca", "fallback", "timeout", "erro"
-    ] = Field(
+    evento: Literal["aprovacao", "rejeicao", "seguranca", "fallback", "timeout", "erro"] = Field(
         ...,
         description="Tipo do evento auditado",
     )

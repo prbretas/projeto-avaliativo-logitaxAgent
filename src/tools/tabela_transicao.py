@@ -78,10 +78,7 @@ def _validar_parametros(
         erros.append(
             CampoInvalido(
                 campo="regime",
-                motivo=(
-                    f"Regime '{regime}' inválido. "
-                    f"Valores aceitos: {sorted(REGIMES_VALIDOS)}"
-                ),
+                motivo=(f"Regime '{regime}' inválido. Valores aceitos: {sorted(REGIMES_VALIDOS)}"),
             )
         )
 

@@ -12,24 +12,23 @@ Requirements: 5.1, 10.1, 11.4, 11.5
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from src.models.operacao import OperacaoFrete
 from src.models.erro import ErroEstruturado
-from src.tools.tabela_transicao import router as tools_router
-from src.persistence.checkpointer import SessionCheckpointer
+from src.models.operacao import OperacaoFrete
 from src.observability.logger import (
     get_audit_timeline,
     log_audit_event,
     setup_structured_logging,
 )
+from src.persistence.checkpointer import SessionCheckpointer
+from src.tools.tabela_transicao import router as tools_router
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +40,10 @@ checkpointer = SessionCheckpointer()
 
 app = FastAPI(
     title="LogitaxAgent — Simulador IBS/CBS",
-    description="Sistema agêntico para simulação de impacto da Reforma Tributária (IBS/CBS) sobre operações de frete.",
+    description=(
+        "Sistema agêntico para simulação de impacto da Reforma Tributária "
+        "(IBS/CBS) sobre operações de frete."
+    ),
     version="0.1.0",
 )
 
@@ -200,13 +202,12 @@ async def simular(request: SimularRequest) -> SimularResponse:
                 "erro": "Validação falhou",
                 "campos_invalidos": str(e),
                 "thread_id": thread_id,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
         )
 
     logger.info(
-        "POST /simular: operação aceita (thread_id=%s, regime=%s, "
-        "valor_frete=%.2f)",
+        "POST /simular: operação aceita (thread_id=%s, regime=%s, valor_frete=%.2f)",
         thread_id,
         operacao.regime_tributario,
         operacao.valor_frete,
@@ -279,7 +280,9 @@ async def simular(request: SimularRequest) -> SimularResponse:
     # Persist state via checkpointer
     state_to_persist = {
         "thread_id": thread_id,
-        "operacao": operacao.model_dump(mode="json") if hasattr(operacao, "model_dump") else operacao,
+        "operacao": operacao.model_dump(mode="json")
+        if hasattr(operacao, "model_dump")
+        else operacao,
         "resultados_por_ano": resultados_serialized,
         "justificativa": justificativa,
         "comentario_agente": comentario_agente,
@@ -287,7 +290,7 @@ async def simular(request: SimularRequest) -> SimularResponse:
         "aprovado_humano": final_state.get("aprovado_humano"),
         "export_status": final_state.get("export_status", "completed"),
         "trechos_rag": final_state.get("trechos_rag", []),
-        "completed_at": datetime.now(timezone.utc).isoformat(),
+        "completed_at": datetime.now(UTC).isoformat(),
     }
     checkpointer.save(thread_id, state_to_persist)
 
@@ -343,7 +346,7 @@ async def review_simulacao(
         )
 
     decisao = "aprovado" if request.aprovado else "rejeitado"
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = datetime.now(UTC).isoformat()
 
     # Log audit event for human decision
     log_audit_event(
@@ -459,4 +462,4 @@ async def get_resultado(thread_id: str) -> ResultadoResponse:
 @app.get("/health")
 async def health():
     """Health check endpoint."""
-    return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
+    return {"status": "ok", "timestamp": datetime.now(UTC).isoformat()}

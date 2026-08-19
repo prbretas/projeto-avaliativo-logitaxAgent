@@ -10,25 +10,23 @@ Tests cover:
 
 from __future__ import annotations
 
-import asyncio
 from datetime import date
-from typing import Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
 
 from src.graph.nodes.route_regime import route_regime
+from src.graph.nodes.simular_ano import ANOS_MARCO, simular_ano
 from src.graph.nodes.simular_regime import (
     simular_regime_hibrido_simples,
     simular_regime_regular,
 )
-from src.graph.nodes.simular_ano import ANOS_MARCO, simular_ano
 from src.models.operacao import OperacaoFrete
 from src.models.tabela_transicao import TabelaTransicaoResponse
 from src.tools.client_transicao import ConsultaTransicaoResult
 
-
 # --- Helpers ---
+
 
 def _make_operacao(regime: str = "lucro_real") -> OperacaoFrete:
     """Create a valid OperacaoFrete for testing."""
@@ -75,6 +73,7 @@ def _make_consulta_result(ano: int) -> ConsultaTransicaoResult:
 
 # --- Tests for route_regime (Task 5.5) ---
 
+
 class TestRouteRegime:
     """Tests for the route_regime node and _route_by_regime conditional edge."""
 
@@ -87,6 +86,7 @@ class TestRouteRegime:
     def test_route_by_regime_simples_nacional(self):
         """_route_by_regime should route simples_nacional to hibrido."""
         from src.graph.graph import _route_by_regime
+
         state = {"operacao": _make_operacao("simples_nacional")}
         result = _route_by_regime(state)
         assert result == "simular_regime_hibrido_simples"
@@ -94,6 +94,7 @@ class TestRouteRegime:
     def test_route_by_regime_lucro_real(self):
         """_route_by_regime should route lucro_real to regular."""
         from src.graph.graph import _route_by_regime
+
         state = {"operacao": _make_operacao("lucro_real")}
         result = _route_by_regime(state)
         assert result == "simular_regime_regular"
@@ -101,6 +102,7 @@ class TestRouteRegime:
     def test_route_by_regime_lucro_presumido(self):
         """_route_by_regime should route lucro_presumido to regular."""
         from src.graph.graph import _route_by_regime
+
         state = {"operacao": _make_operacao("lucro_presumido")}
         result = _route_by_regime(state)
         assert result == "simular_regime_regular"
@@ -108,6 +110,7 @@ class TestRouteRegime:
     def test_route_by_regime_with_dict_operacao(self):
         """_route_by_regime should also work when operacao is a plain dict."""
         from src.graph.graph import _route_by_regime
+
         state = {"operacao": {"regime_tributario": "simples_nacional"}}
         result = _route_by_regime(state)
         assert result == "simular_regime_hibrido_simples"
@@ -115,12 +118,14 @@ class TestRouteRegime:
     def test_route_by_regime_dict_lucro_real(self):
         """_route_by_regime should route dict with lucro_real to regular."""
         from src.graph.graph import _route_by_regime
+
         state = {"operacao": {"regime_tributario": "lucro_real"}}
         result = _route_by_regime(state)
         assert result == "simular_regime_regular"
 
 
 # --- Tests for simular_regime nodes (Task 5.6) ---
+
 
 class TestSimularRegime:
     """Tests for simular_regime_regular and simular_regime_hibrido_simples."""
@@ -152,6 +157,7 @@ class TestSimularRegime:
 
 # --- Tests for simular_ano (Task 5.7) ---
 
+
 class TestSimularAno:
     """Tests for the simular_ano fan-out/fan-in node."""
 
@@ -159,6 +165,7 @@ class TestSimularAno:
     @patch("src.graph.nodes.simular_ano.consultar_tabela_transicao")
     async def test_simular_ano_all_years_success(self, mock_consultar):
         """All milestone years should succeed and results sorted by year."""
+
         async def _mock_consultar(ano, **kwargs):
             return _make_consulta_result(ano)
 
@@ -185,6 +192,7 @@ class TestSimularAno:
     @patch("src.graph.nodes.simular_ano.consultar_tabela_transicao")
     async def test_simular_ano_partial_failure(self, mock_consultar):
         """Partial failure: some years fail but successful ones are preserved."""
+
         async def _mock_consultar(ano, **kwargs):
             if ano == 2027:
                 raise TimeoutError("Connection timed out for year 2027")
@@ -215,6 +223,7 @@ class TestSimularAno:
     @patch("src.graph.nodes.simular_ano.consultar_tabela_transicao")
     async def test_simular_ano_total_failure(self, mock_consultar):
         """Total failure: all years fail, empty results with alerts."""
+
         async def _mock_consultar(ano, **kwargs):
             raise ConnectionError(f"Cannot connect for year {ano}")
 
@@ -234,6 +243,7 @@ class TestSimularAno:
     @patch("src.graph.nodes.simular_ano.consultar_tabela_transicao")
     async def test_simular_ano_results_have_correct_values(self, mock_consultar):
         """Verify tax calculations are correct for a known input."""
+
         async def _mock_consultar(ano, **kwargs):
             return _make_consulta_result(ano)
 
@@ -261,6 +271,7 @@ class TestSimularAno:
     @patch("src.graph.nodes.simular_ano.consultar_tabela_transicao")
     async def test_simular_ano_with_dict_operacao(self, mock_consultar):
         """Should work with operacao as a plain dict."""
+
         async def _mock_consultar(ano, **kwargs):
             return _make_consulta_result(ano)
 
@@ -287,6 +298,7 @@ class TestSimularAno:
     @patch("src.graph.nodes.simular_ano.consultar_tabela_transicao")
     async def test_simular_ano_default_credit_factor(self, mock_consultar):
         """If credit_factor not in state, should default to 1.0."""
+
         async def _mock_consultar(ano, **kwargs):
             return _make_consulta_result(ano)
 

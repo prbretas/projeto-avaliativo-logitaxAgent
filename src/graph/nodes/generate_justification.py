@@ -26,7 +26,6 @@ from typing import Any
 
 import httpx
 
-from src.models.tabela_transicao import TabelaTransicaoResponse
 from src.tools.client_transicao import consultar_tabela_transicao
 
 logger = logging.getLogger("logitaxAgent.justificativa")
@@ -78,11 +77,31 @@ def _build_prompt(
     resultados_formatados = json.dumps(resultados_por_ano, indent=2, ensure_ascii=False)
 
     # Extract operation details
-    modal = operacao.get("modal", "N/A") if isinstance(operacao, dict) else getattr(operacao, "modal", "N/A")
-    origem_uf = operacao.get("origem_uf", "N/A") if isinstance(operacao, dict) else getattr(operacao, "origem_uf", "N/A")
-    destino_uf = operacao.get("destino_uf", "N/A") if isinstance(operacao, dict) else getattr(operacao, "destino_uf", "N/A")
-    regime = operacao.get("regime_tributario", "N/A") if isinstance(operacao, dict) else getattr(operacao, "regime_tributario", "N/A")
-    valor_frete = operacao.get("valor_frete", 0) if isinstance(operacao, dict) else getattr(operacao, "valor_frete", 0)
+    modal = (
+        operacao.get("modal", "N/A")
+        if isinstance(operacao, dict)
+        else getattr(operacao, "modal", "N/A")
+    )
+    origem_uf = (
+        operacao.get("origem_uf", "N/A")
+        if isinstance(operacao, dict)
+        else getattr(operacao, "origem_uf", "N/A")
+    )
+    destino_uf = (
+        operacao.get("destino_uf", "N/A")
+        if isinstance(operacao, dict)
+        else getattr(operacao, "destino_uf", "N/A")
+    )
+    regime = (
+        operacao.get("regime_tributario", "N/A")
+        if isinstance(operacao, dict)
+        else getattr(operacao, "regime_tributario", "N/A")
+    )
+    valor_frete = (
+        operacao.get("valor_frete", 0)
+        if isinstance(operacao, dict)
+        else getattr(operacao, "valor_frete", 0)
+    )
 
     prompt = f"""Você é um analista tributário especializado na Reforma Tributária brasileira (LC 214/2025).
 
@@ -215,9 +234,7 @@ async def _get_tool_rates_for_years(
             icms_efetivo = round(12.0 * tabela.aliquota_icms_pct_da_base / 100.0, 2)
             valid_rates.add(icms_efetivo)
         except Exception as exc:
-            logger.warning(
-                "Failed to fetch tool rates for year %d: %s", ano, str(exc)
-            )
+            logger.warning("Failed to fetch tool rates for year %d: %s", ano, str(exc))
 
     return valid_rates
 
@@ -327,16 +344,19 @@ def _gerar_comentario_agente(
     # Extract operation details
     if isinstance(operacao, dict):
         regime = operacao.get("regime_tributario", "lucro_real")
-        valor_frete = operacao.get("valor_frete", 0)
+        operacao.get("valor_frete", 0)
     else:
         regime = getattr(operacao, "regime_tributario", "lucro_real")
-        valor_frete = getattr(operacao, "valor_frete", 0)
+        getattr(operacao, "valor_frete", 0)
 
     # Analyze results
     partes: list[str] = []
 
     # Overall trend
-    deltas = [r.get("delta_percentual", 0) if isinstance(r, dict) else getattr(r, "delta_percentual", 0) for r in resultados_por_ano]
+    deltas = [
+        r.get("delta_percentual", 0) if isinstance(r, dict) else getattr(r, "delta_percentual", 0)
+        for r in resultados_por_ano
+    ]
     media_delta = sum(deltas) / len(deltas) if deltas else 0
 
     if media_delta > 5:
@@ -358,7 +378,11 @@ def _gerar_comentario_agente(
     if len(deltas) > 1:
         max_idx = deltas.index(max(deltas, key=abs))
         resultado_max = resultados_por_ano[max_idx]
-        ano_max = resultado_max.get("ano") if isinstance(resultado_max, dict) else getattr(resultado_max, "ano", "?")
+        ano_max = (
+            resultado_max.get("ano")
+            if isinstance(resultado_max, dict)
+            else getattr(resultado_max, "ano", "?")
+        )
         delta_max = deltas[max_idx]
         if delta_max > 0:
             partes.append(
@@ -384,8 +408,11 @@ def _gerar_comentario_agente(
 
     # Warning about estimated data
     tem_estimativa = any(
-        not (r.get("detalhe_regime_novo", {}).get("oficial", True) if isinstance(r, dict)
-             else getattr(getattr(r, "detalhe_regime_novo", None), "oficial", True))
+        not (
+            r.get("detalhe_regime_novo", {}).get("oficial", True)
+            if isinstance(r, dict)
+            else getattr(getattr(r, "detalhe_regime_novo", None), "oficial", True)
+        )
         for r in resultados_por_ano
     )
     if tem_estimativa:
@@ -452,8 +479,7 @@ async def generate_justification(state: dict[str, Any]) -> dict[str, Any]:
 
     # Get valid rates from Tool_Transicao for validation
     anos_simulados = [
-        r.get("ano") if isinstance(r, dict) else getattr(r, "ano", None)
-        for r in resultados_por_ano
+        r.get("ano") if isinstance(r, dict) else getattr(r, "ano", None) for r in resultados_por_ano
     ]
     anos_simulados = [a for a in anos_simulados if a is not None]
 

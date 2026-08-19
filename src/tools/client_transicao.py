@@ -165,8 +165,7 @@ def _carregar_fallback_local(ano: int) -> ConsultaTransicaoResult:
 
     if entrada is None:
         raise ValueError(
-            f"Ano {ano} não encontrado no arquivo de fallback local: "
-            f"{TABELA_TRANSICAO_LOCAL_PATH}"
+            f"Ano {ano} não encontrado no arquivo de fallback local: {TABELA_TRANSICAO_LOCAL_PATH}"
         )
 
     dados = TabelaTransicaoResponse(**entrada)

@@ -18,7 +18,6 @@ from src.graph.nodes.calculo import (
 )
 from src.models.tabela_transicao import TabelaTransicaoResponse
 
-
 # --- Fixtures ---
 
 

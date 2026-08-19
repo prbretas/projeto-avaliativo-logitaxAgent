@@ -14,13 +14,16 @@ from hypothesis import strategies as st
 
 from src.persistence.checkpointer import SessionCheckpointer
 
-
 # --- Property 12: Session state round-trip ---
 
 
 @given(
-    thread_id=st.text(min_size=1, max_size=50, alphabet=st.characters(whitelist_categories=("L", "N"))),
-    valor_frete=st.floats(min_value=0.01, max_value=1_000_000, allow_nan=False, allow_infinity=False),
+    thread_id=st.text(
+        min_size=1, max_size=50, alphabet=st.characters(whitelist_categories=("L", "N"))
+    ),
+    valor_frete=st.floats(
+        min_value=0.01, max_value=1_000_000, allow_nan=False, allow_infinity=False
+    ),
 )
 @settings(max_examples=30)
 def test_session_state_round_trip(thread_id, valor_frete):

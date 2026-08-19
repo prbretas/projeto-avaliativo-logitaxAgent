@@ -7,20 +7,20 @@ Property 5: Regime routing produces differentiated results.
 Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 4.1, 4.2, 4.5
 """
 
+import json
+from pathlib import Path
+
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from src.graph.nodes.calculo import (
-    calcular_tributo_atual,
-    calcular_tributo_novo,
-    calcular_delta_percentual,
-    PIS_PCT,
     COFINS_PCT,
     ICMS_BASE_PCT,
+    PIS_PCT,
+    calcular_delta_percentual,
+    calcular_tributo_atual,
+    calcular_tributo_novo,
 )
-
-import json
-from pathlib import Path
 
 # Load transition table for verification
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -33,7 +33,11 @@ TABELA_POR_ANO = {item["ano"]: item for item in TABELA_TRANSICAO}
 # --- Property 3: Tax calculation uses correct year-specific formula ---
 
 
-@given(valor_frete=st.floats(min_value=0.01, max_value=10_000_000, allow_nan=False, allow_infinity=False))
+@given(
+    valor_frete=st.floats(
+        min_value=0.01, max_value=10_000_000, allow_nan=False, allow_infinity=False
+    )
+)
 @settings(max_examples=100)
 def test_tributo_atual_formula(valor_frete):
     """Property 3a: valor_tributo_atual = valor_frete × (PIS + COFINS + ICMS) = 21.25%."""
@@ -43,7 +47,9 @@ def test_tributo_atual_formula(valor_frete):
 
 
 @given(
-    valor_frete=st.floats(min_value=100, max_value=1_000_000, allow_nan=False, allow_infinity=False),
+    valor_frete=st.floats(
+        min_value=100, max_value=1_000_000, allow_nan=False, allow_infinity=False
+    ),
     ano=st.sampled_from([2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033]),
 )
 @settings(max_examples=80)
@@ -52,6 +58,7 @@ def test_tributo_novo_uses_tabela_rates(valor_frete, ano):
     tabela = TABELA_POR_ANO[ano]
 
     from src.models.tabela_transicao import TabelaTransicaoResponse
+
     tabela_response = TabelaTransicaoResponse(**tabela)
 
     resultado = calcular_tributo_novo(
@@ -71,8 +78,12 @@ def test_tributo_novo_uses_tabela_rates(valor_frete, ano):
 
 
 @given(
-    tributo_atual=st.floats(min_value=0.01, max_value=1_000_000, allow_nan=False, allow_infinity=False),
-    tributo_novo=st.floats(min_value=0.0, max_value=1_000_000, allow_nan=False, allow_infinity=False),
+    tributo_atual=st.floats(
+        min_value=0.01, max_value=1_000_000, allow_nan=False, allow_infinity=False
+    ),
+    tributo_novo=st.floats(
+        min_value=0.0, max_value=1_000_000, allow_nan=False, allow_infinity=False
+    ),
 )
 @settings(max_examples=100)
 def test_delta_percentual_formula(tributo_atual, tributo_novo):
@@ -95,6 +106,7 @@ def test_regime_routing_differentiated(valor_frete, ano):
     tabela = TABELA_POR_ANO[ano]
 
     from src.models.tabela_transicao import TabelaTransicaoResponse
+
     tabela_response = TabelaTransicaoResponse(**tabela)
 
     resultado_regular = calcular_tributo_novo(

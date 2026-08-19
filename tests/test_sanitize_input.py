@@ -267,9 +267,7 @@ class TestSanitizeInputNode:
         result = sanitize_input(state)
         obs = result["operacao"].observacoes
         # Content within delimiters should be at most 500 chars
-        inner = obs.replace("[UNTRUSTED_USER_DATA]\n", "").replace(
-            "\n[/UNTRUSTED_USER_DATA]", ""
-        )
+        inner = obs.replace("[UNTRUSTED_USER_DATA]\n", "").replace("\n[/UNTRUSTED_USER_DATA]", "")
         assert len(inner) <= MAX_OBSERVACOES_LENGTH
 
     def test_raises_error_if_no_operacao(self):
