@@ -134,14 +134,20 @@ async def simular_ano(state: dict[str, Any]) -> dict[str, Any]:
         regime = operacao.regime_tributario
         uf_origem = operacao.origem_uf
         uf_destino = operacao.destino_uf
+        data_ref = operacao.data_referencia
     else:
         valor_frete = operacao["valor_frete"]
         regime = operacao["regime_tributario"]
         uf_origem = operacao["origem_uf"]
         uf_destino = operacao["destino_uf"]
+        data_ref = operacao.get("data_referencia")
 
-    # Determine years to simulate
-    anos = ANOS_MARCO
+    # Determine years to simulate: always include the user's selected year
+    ano_usuario = data_ref.year if hasattr(data_ref, "year") else None
+    anos = list(ANOS_MARCO)
+    if ano_usuario and ano_usuario not in anos:
+        anos.append(ano_usuario)
+        anos.sort()
 
     # Fan-out: launch parallel tasks for each year
     tasks = [

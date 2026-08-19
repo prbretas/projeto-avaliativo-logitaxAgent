@@ -171,6 +171,15 @@ with tab_simular:
         justificativa = result.get("justificativa")
         alertas = result.get("alertas", [])
 
+        # Generate comment locally if graph didn't produce one
+        if not comentario and resultados:
+            from src.graph.nodes.generate_justification import _gerar_comentario_agente
+
+            resultados_dicts = [
+                r.model_dump() if hasattr(r, "model_dump") else r for r in resultados
+            ]
+            comentario = _gerar_comentario_agente(resultados_dicts, operacao)
+
         if not resultados:
             st.error("Nenhum resultado retornado.")
             st.stop()
@@ -192,8 +201,12 @@ with tab_simular:
             rd = r.model_dump() if hasattr(r, "model_dump") else r
             with cols[i]:
                 delta = rd["delta_percentual"]
+                ano_label = f"Ano {rd['ano']}"
+                # Highlight user's selected year
+                if rd["ano"] == ano_ref:
+                    ano_label = f"⭐ Ano {rd['ano']}"
                 st.metric(
-                    label=f"Ano {rd['ano']}",
+                    label=ano_label,
                     value=f"R$ {rd['valor_tributo_novo']:.2f}",
                     delta=f"{delta:.2f}%",
                     delta_color="inverse",
