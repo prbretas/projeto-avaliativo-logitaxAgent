@@ -149,9 +149,7 @@ def validar_aliquotas_2026(tabela: dict) -> list[str]:
     ]:
         valor_local = entrada_2026.get(campo)
         if valor_local != valor_oficial:
-            discrepancias.append(
-                f"2026.{campo}: local={valor_local}, oficial={valor_oficial}"
-            )
+            discrepancias.append(f"2026.{campo}: local={valor_local}, oficial={valor_oficial}")
 
     return discrepancias
 
@@ -201,9 +199,9 @@ def gerar_relatorio(
 - **Caminho:** `data/tabela_transicao_local.json`
 
 ## Fonte Oficial
-- **URL:** {fonte_status['fonte']}
-- **Status:** {fonte_status['status']}
-- **Observação:** {fonte_status['observacao']}
+- **URL:** {fonte_status["fonte"]}
+- **Status:** {fonte_status["status"]}
+- **Observação:** {fonte_status["observacao"]}
 
 ## Validação de Alíquotas 2026 (fase-teste)
 """
@@ -212,7 +210,9 @@ def gerar_relatorio(
         for d in discrepancias_2026:
             report += f"- ❌ {d}\n"
     else:
-        report += "- ✅ Alíquotas CBS 0.9% + IBS 0.1% = 1.0% conferem com LC 214/2025 arts. 343/346/348\n"
+        report += (
+            "- ✅ Alíquotas CBS 0.9% + IBS 0.1% = 1.0% conferem com LC 214/2025 arts. 343/346/348\n"
+        )
 
     report += "\n## Validação do Cronograma de Substituição (2029–2033)\n"
 
@@ -222,10 +222,17 @@ def gerar_relatorio(
     else:
         report += "- ✅ Percentuais de substituição ICMS→IBS conferem com cronograma oficial\n"
 
+    conclusao_ok = (
+        "Nenhuma atualização necessária. "
+        "Tabela local consistente com os dados oficiais disponíveis."
+    )
+    conclusao_erro = "AÇÃO NECESSÁRIA: Revise as discrepâncias acima e atualize a tabela local."
+    conclusao = conclusao_ok if not todas_discrepancias else conclusao_erro
+
     report += f"""
 ## Conclusão
 
-{"Nenhuma atualização necessária. Tabela local consistente com os dados oficiais disponíveis." if not todas_discrepancias else "AÇÃO NECESSÁRIA: Revise as discrepâncias acima e atualize a tabela local."}
+{conclusao}
 
 ## Próxima verificação
 
@@ -278,7 +285,9 @@ def main():
     # Summary
     total_disc = len(discrepancias_2026) + len(discrepancias_cronograma)
     if total_disc == 0:
-        logger.info("✅ Verificação concluída: tabela local consistente, nenhuma atualização necessária.")
+        logger.info(
+            "✅ Verificação concluída: tabela local consistente, nenhuma atualização necessária."
+        )
         return 0
     else:
         logger.warning(

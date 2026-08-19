@@ -37,9 +37,7 @@ async def _consultar_simples_mcp(cnpj: str) -> dict[str, Any] | None:
             resultado = await fiscal.consultar_simples_nacional(cnpj)
             return resultado
     except ImportError:
-        logger.info(
-            "mcp-fiscal-brasil not installed. Skipping regime validation."
-        )
+        logger.info("mcp-fiscal-brasil not installed. Skipping regime validation.")
         return None
     except Exception as exc:
         logger.warning(
@@ -68,9 +66,7 @@ async def _consultar_cnpj_mcp(cnpj: str) -> dict[str, Any] | None:
     except ImportError:
         return None
     except Exception as exc:
-        logger.warning(
-            "Failed to query CNPJ via MCP: %s", str(exc)
-        )
+        logger.warning("Failed to query CNPJ via MCP: %s", str(exc))
         return None
 
 
@@ -137,7 +133,8 @@ async def enriquecer_operacao(state: dict[str, Any]) -> dict[str, Any]:
                 f"Regime ajustado automaticamente para 'simples_nacional'."
             )
             logger.warning(
-                "Regime mismatch: user informed '%s' but CNPJ is Simples Nacional. Auto-correcting.",
+                "Regime mismatch: user informed '%s' but CNPJ is "
+                "Simples Nacional. Auto-correcting.",
                 regime_informado,
                 extra={"thread_id": thread_id, "cnpj_prefix": cnpj[:8]},
             )
@@ -150,9 +147,9 @@ async def enriquecer_operacao(state: dict[str, Any]) -> dict[str, Any]:
 
         elif not optante_simples and regime_informado == "simples_nacional":
             alertas.append(
-                f"MCP: CNPJ NÃO é optante do Simples Nacional (confirmado pela Receita Federal), "
-                f"mas regime informado foi 'simples_nacional'. "
-                f"Verifique com o transportador. Mantendo regime informado."
+                "MCP: CNPJ NÃO é optante do Simples Nacional (confirmado pela Receita Federal), "
+                "mas regime informado foi 'simples_nacional'. "
+                "Verifique com o transportador. Mantendo regime informado."
             )
             logger.warning(
                 "Regime mismatch: user informed 'simples_nacional' but CNPJ is NOT optante.",

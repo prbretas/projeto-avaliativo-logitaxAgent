@@ -10,8 +10,6 @@ Requirements: 1.1, 1.7, 1.8
 
 from datetime import date
 
-import pytest
-
 from src.graph.nodes.parse_operacao import parse_operacao
 from src.models.erro import ErroEstruturado
 from src.models.operacao import OperacaoFrete

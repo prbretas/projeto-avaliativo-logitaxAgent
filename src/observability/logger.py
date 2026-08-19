@@ -18,10 +18,11 @@ import logging
 import os
 import sqlite3
 import time
+from collections.abc import Generator
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Generator
+from typing import Any
 
 # --- Structured JSON Logger ---
 
@@ -33,7 +34,7 @@ class StructuredLogFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         log_entry = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
@@ -82,7 +83,7 @@ class NodeLogger:
     def track_execution(self) -> Generator[None, None, None]:
         """Context manager that tracks execution time and logs result."""
         self._start_time = time.perf_counter()
-        timestamp = datetime.now(timezone.utc).isoformat()
+        datetime.now(UTC).isoformat()
 
         self.logger.info(
             "Node execution started",
@@ -208,7 +209,7 @@ def log_audit_event(
         recovery_action: Action taken (retry, fallback, escalation).
         duration_ms: Duration in milliseconds.
     """
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = datetime.now(UTC).isoformat()
 
     try:
         conn = get_audit_connection()
@@ -233,9 +234,7 @@ def log_audit_event(
         conn.commit()
         conn.close()
     except Exception as e:
-        logging.getLogger(__name__).error(
-            "Falha ao gravar evento de auditoria: %s", e
-        )
+        logging.getLogger(__name__).error("Falha ao gravar evento de auditoria: %s", e)
 
 
 def get_audit_timeline(thread_id: str) -> list[dict[str, Any]]:
@@ -276,7 +275,5 @@ def get_audit_timeline(thread_id: str) -> list[dict[str, Any]]:
             for row in rows
         ]
     except Exception as e:
-        logging.getLogger(__name__).error(
-            "Falha ao recuperar timeline de auditoria: %s", e
-        )
+        logging.getLogger(__name__).error("Falha ao recuperar timeline de auditoria: %s", e)
         return []

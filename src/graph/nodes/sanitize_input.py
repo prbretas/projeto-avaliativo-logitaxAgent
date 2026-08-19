@@ -189,9 +189,7 @@ def sanitize_input(state: dict[str, Any]) -> dict[str, Any]:
 
     try:
         # Attempt sanitization with timeout enforcement
-        sanitized, injection_detected = _perform_sanitization_with_timeout(
-            observacoes, thread_id
-        )
+        sanitized, injection_detected = _perform_sanitization_with_timeout(observacoes, thread_id)
     except SanitizationTimeoutError:
         logger.error(
             "Sanitization timeout exceeded",
@@ -249,9 +247,7 @@ def sanitize_input(state: dict[str, Any]) -> dict[str, Any]:
     return state
 
 
-def _perform_sanitization_with_timeout(
-    content: str, thread_id: str | None
-) -> tuple[str, bool]:
+def _perform_sanitization_with_timeout(content: str, thread_id: str | None) -> tuple[str, bool]:
     """Perform sanitization with 3-second timeout enforcement.
 
     Uses signal.alarm on Unix. On Windows, falls back to time-based checking.
@@ -281,9 +277,7 @@ def _timeout_handler(signum: int, frame: Any) -> None:
     raise SanitizationTimeoutError("Sanitization exceeded 3-second timeout (SIGALRM)")
 
 
-def _sanitize_with_signal_timeout(
-    content: str, thread_id: str | None
-) -> tuple[str, bool]:
+def _sanitize_with_signal_timeout(content: str, thread_id: str | None) -> tuple[str, bool]:
     """Sanitize with signal.alarm timeout (Unix only).
 
     Args:
@@ -306,9 +300,7 @@ def _sanitize_with_signal_timeout(
     return result
 
 
-def _sanitize_with_time_check(
-    content: str, thread_id: str | None
-) -> tuple[str, bool]:
+def _sanitize_with_time_check(content: str, thread_id: str | None) -> tuple[str, bool]:
     """Sanitize with time-based timeout check (Windows compatible).
 
     Note: This is a post-execution check. For true preemptive timeout on Windows,

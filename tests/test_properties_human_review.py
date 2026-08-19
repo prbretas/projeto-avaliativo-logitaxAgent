@@ -12,7 +12,6 @@ from hypothesis import strategies as st
 from src.graph.nodes.export_result import export_result
 from src.graph.nodes.human_review import get_review_summary
 
-
 # --- Property 16: No export without human approval ---
 
 
@@ -27,7 +26,12 @@ def test_no_export_without_human_approval(aprovado, thread_id):
         "thread_id": thread_id,
         "aprovado_humano": aprovado,
         "resultados_por_ano": [
-            {"ano": 2026, "valor_tributo_atual": 2125.0, "valor_tributo_novo": 100.0, "delta_percentual": -95.0}
+            {
+                "ano": 2026,
+                "valor_tributo_atual": 2125.0,
+                "valor_tributo_novo": 100.0,
+                "delta_percentual": -95.0,
+            }
         ],
         "operacao": {"modal": "rodoviario", "valor_frete": 10000.0},
         "justificativa": "Test",
@@ -50,7 +54,12 @@ def test_export_allowed_with_approval(thread_id):
         "thread_id": thread_id,
         "aprovado_humano": True,
         "resultados_por_ano": [
-            {"ano": 2026, "valor_tributo_atual": 2125.0, "valor_tributo_novo": 100.0, "delta_percentual": -95.0}
+            {
+                "ano": 2026,
+                "valor_tributo_atual": 2125.0,
+                "valor_tributo_novo": 100.0,
+                "delta_percentual": -95.0,
+            }
         ],
         "operacao": {"modal": "rodoviario", "valor_frete": 10000.0},
         "justificativa": "Approved test",
@@ -83,9 +92,7 @@ def test_pending_review_retrieval_idempotent(thread_id, num_calls):
             "regime_tributario": "lucro_real",
             "valor_frete": 10000.0,
         },
-        "resultados_por_ano": [
-            {"ano": 2026, "delta_percentual": -50.0}
-        ],
+        "resultados_por_ano": [{"ano": 2026, "delta_percentual": -50.0}],
         "justificativa": "Pending review",
         "alertas": [],
     }

@@ -57,9 +57,18 @@ def parse_operacao(state: dict[str, Any]) -> dict[str, Any]:
     else:
         # Try to extract raw fields from state itself (legacy behavior)
         payload = {
-            k: v for k, v in state.items()
-            if k in ("modal", "origem_uf", "destino_uf", "regime_tributario",
-                     "valor_frete", "data_referencia", "observacoes")
+            k: v
+            for k, v in state.items()
+            if k
+            in (
+                "modal",
+                "origem_uf",
+                "destino_uf",
+                "regime_tributario",
+                "valor_frete",
+                "data_referencia",
+                "observacoes",
+            )
         }
 
     try:

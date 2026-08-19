@@ -174,9 +174,7 @@ async def simular_ano(state: dict[str, Any]) -> dict[str, Any]:
     resultados.sort(key=lambda r: r.ano)
 
     if not resultados and alertas:
-        logger.error(
-            "Todos os anos falharam no fan-out. Alertas: %s", alertas
-        )
+        logger.error("Todos os anos falharam no fan-out. Alertas: %s", alertas)
 
     return {
         "resultados_por_ano": resultados,

@@ -10,13 +10,14 @@ from hypothesis import strategies as st
 
 from src.graph.nodes.export_result import _build_webhook_payload
 
-
 # --- Property 19: Webhook payload contains required fields ---
 
 
 @given(
     thread_id=st.uuids().map(str),
-    valor_frete=st.floats(min_value=100, max_value=1_000_000, allow_nan=False, allow_infinity=False),
+    valor_frete=st.floats(
+        min_value=100, max_value=1_000_000, allow_nan=False, allow_infinity=False
+    ),
     ano=st.sampled_from([2026, 2027, 2030, 2033]),
 )
 @settings(max_examples=50)

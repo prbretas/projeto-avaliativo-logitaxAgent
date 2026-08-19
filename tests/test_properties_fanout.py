@@ -66,7 +66,7 @@ def test_results_chronologically_ordered(anos):
     # Verify chronological order
     for i in range(len(agregados) - 1):
         assert agregados[i].ano < agregados[i + 1].ano, (
-            f"Results not ordered: {agregados[i].ano} >= {agregados[i+1].ano}"
+            f"Results not ordered: {agregados[i].ano} >= {agregados[i + 1].ano}"
         )
 
 

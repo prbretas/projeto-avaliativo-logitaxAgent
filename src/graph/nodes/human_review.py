@@ -15,7 +15,7 @@ Requirements: 10.1, 10.2, 10.3, 10.5, 10.6
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -75,7 +75,7 @@ def _build_review_summary(state: dict[str, Any]) -> dict[str, Any]:
         "alertas": alertas,
         "thread_id": state.get("thread_id", ""),
         "revisao_manual": state.get("revisao_manual", False),
-        "timestamp_solicitacao": datetime.now(timezone.utc).isoformat(),
+        "timestamp_solicitacao": datetime.now(UTC).isoformat(),
     }
 
 
@@ -200,7 +200,7 @@ def is_review_expired(state: dict[str, Any]) -> bool:
 
     try:
         timestamp = datetime.fromisoformat(timestamp_str)
-        elapsed = (datetime.now(timezone.utc) - timestamp).total_seconds()
+        elapsed = (datetime.now(UTC) - timestamp).total_seconds()
         return elapsed > REVIEW_TIMEOUT_SECONDS
     except (ValueError, TypeError):
         return False

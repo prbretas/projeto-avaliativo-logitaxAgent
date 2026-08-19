@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Ruff lint check before file writes",
+      "trigger": "PostFileSave",
+      "description": "Runs ruff lint on Python files after save to catch issues early before committing",
+      "matcher": "\\.(py)$",
+      "action": {
+        "type": "command",
+        "command": "ruff check --select E501,F401,I001 --quiet"
+      }
+    }
+  ]
+}

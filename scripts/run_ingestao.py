@@ -291,7 +291,11 @@ def run_ingestao(chromadb_path: str) -> dict:
             name=COLLECTION_NAME,
             metadata={"description": "Trechos legislativos sobre IBS/CBS e transporte de cargas"},
         )
-        logger.info("Coleção '%s' pronta (documentos existentes: %d)", COLLECTION_NAME, collection.count())
+        logger.info(
+            "Coleção '%s' pronta (documentos existentes: %d)",
+            COLLECTION_NAME,
+            collection.count(),
+        )
     except Exception as e:
         error_msg = f"Erro ao criar/obter coleção: {e}"
         logger.error(error_msg)
@@ -352,7 +356,8 @@ def main():
         "--chromadb-path",
         type=str,
         default=None,
-        help="Caminho para o diretório persistente do ChromaDB (default: CHROMADB_PATH env ou ./data/chromadb)",
+        help="Caminho para o diretório persistente do ChromaDB "
+        "(default: CHROMADB_PATH env ou ./data/chromadb)",
     )
     args = parser.parse_args()
 

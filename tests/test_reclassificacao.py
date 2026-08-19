@@ -10,8 +10,6 @@ Requirements: 6.1, 6.2, 6.3, 6.4, 6.5
 
 from __future__ import annotations
 
-import pytest
-
 from src.graph.nodes.check_reclassificacao import (
     check_reclassificacao,
     should_continue_or_review,

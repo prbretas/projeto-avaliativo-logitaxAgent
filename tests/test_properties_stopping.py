@@ -10,9 +10,8 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 from pydantic import ValidationError
 
-from src.models.estado import AgentState, MAX_TENTATIVAS_RECLASSIFICACAO
 from src.graph.nodes.check_reclassificacao import check_reclassificacao
-
+from src.models.estado import MAX_TENTATIVAS_RECLASSIFICACAO, AgentState
 
 # --- Property 9: Reclassification counter never exceeds 3 ---
 
@@ -25,6 +24,7 @@ def test_reclassification_counter_never_exceeds_3(tentativas):
         # Pydantic should reject values > 3
         try:
             from src.models.operacao import OperacaoFrete
+
             AgentState(
                 operacao=OperacaoFrete(
                     modal="rodoviario",
@@ -37,12 +37,15 @@ def test_reclassification_counter_never_exceeds_3(tentativas):
                 thread_id="test",
                 tentativas_reclassificacao=tentativas,
             )
-            assert False, f"Should reject tentativas={tentativas} > {MAX_TENTATIVAS_RECLASSIFICACAO}"
+            assert False, (
+                f"Should reject tentativas={tentativas} > {MAX_TENTATIVAS_RECLASSIFICACAO}"
+            )
         except (ValidationError, ValueError):
             pass  # Expected
     else:
         # Valid values should be accepted
         from src.models.operacao import OperacaoFrete
+
         state = AgentState(
             operacao=OperacaoFrete(
                 modal="rodoviario",
@@ -89,6 +92,4 @@ def test_no_reentry_after_forced_review(tentativas):
 
     # Once revisao_manual is True, should stay True
     result = check_reclassificacao(state)
-    assert result.get("revisao_manual") is True, (
-        "revisao_manual should remain True once set"
-    )
+    assert result.get("revisao_manual") is True, "revisao_manual should remain True once set"

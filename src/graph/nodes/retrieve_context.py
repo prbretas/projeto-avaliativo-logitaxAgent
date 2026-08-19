@@ -147,11 +147,13 @@ def _retrieve_chunks(
         applicable_range = meta.get("applicable_year_range", "")
 
         if _year_in_range(applicable_range, ano):
-            filtered_chunks.append({
-                "document": doc,
-                "metadata": meta,
-                "citation": _format_citation(meta),
-            })
+            filtered_chunks.append(
+                {
+                    "document": doc,
+                    "metadata": meta,
+                    "citation": _format_citation(meta),
+                }
+            )
 
         if len(filtered_chunks) >= MAX_CHUNKS:
             break
@@ -186,10 +188,7 @@ def _build_query_text(ano: int, regime: str) -> str:
     else:
         context = "extinção ICMS, IBS CBS plenos 2033"
 
-    return (
-        f"Alíquotas IBS CBS transporte frete {ano} "
-        f"{regime_text} {context}"
-    )
+    return f"Alíquotas IBS CBS transporte frete {ano} {regime_text} {context}"
 
 
 def retrieve_context(state: dict[str, Any]) -> dict[str, Any]:

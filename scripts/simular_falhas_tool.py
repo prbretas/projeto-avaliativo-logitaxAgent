@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import os
 import sys
 import time
 from dataclasses import asdict, dataclass
@@ -126,8 +125,6 @@ async def simulate_invalid_response_faults() -> list[FaultResult]:
         start = time.perf_counter()
         try:
             with patch("src.tools.client_transicao.httpx.AsyncClient") as mock:
-                import httpx
-
                 mock_response = AsyncMock()
                 mock_response.status_code = 200
                 mock_response.json = lambda: {"invalid": "data", "no_required_fields": True}
@@ -179,9 +176,7 @@ async def simulate_connection_refused_faults() -> list[FaultResult]:
                 import httpx
 
                 mock_instance = AsyncMock()
-                mock_instance.get = AsyncMock(
-                    side_effect=httpx.ConnectError("Connection refused")
-                )
+                mock_instance.get = AsyncMock(side_effect=httpx.ConnectError("Connection refused"))
                 mock.return_value.__aenter__ = AsyncMock(return_value=mock_instance)
                 mock.return_value.__aexit__ = AsyncMock(return_value=False)
 
@@ -240,7 +235,9 @@ def generate_report(summaries: list[FaultSummary]) -> str:
     """Generate markdown report for docs/devops/deteccao-anomalia.md."""
     report = "# Detecção de Anomalias — Tool_Transicao\n\n"
     report += "## Resumo da Simulação de Falhas\n\n"
-    report += "| Tipo de Falha | Requests | Falhas | Fallback | Taxa Anomalia | Risco | Mitigação |\n"
+    report += (
+        "| Tipo de Falha | Requests | Falhas | Fallback | Taxa Anomalia | Risco | Mitigação |\n"
+    )
     report += "|---|---|---|---|---|---|---|\n"
 
     for s in summaries:

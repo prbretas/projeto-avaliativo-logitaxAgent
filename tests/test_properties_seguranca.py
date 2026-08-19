@@ -12,7 +12,6 @@ from hypothesis import strategies as st
 from src.graph.nodes.sanitize_input import sanitize_input
 from src.models.operacao import OperacaoFrete
 
-
 # --- Property 14: Sanitizer wraps and truncates ---
 
 
@@ -79,12 +78,12 @@ def test_prompt_injection_does_not_alter_results(injection):
     # Benign version
     op_benign = OperacaoFrete(**base_args, observacoes="Entrega normal")
     state_benign = {"operacao": op_benign}
-    result_benign = sanitize_input(state_benign)
+    sanitize_input(state_benign)
 
     # Injection version
     op_injection = OperacaoFrete(**base_args, observacoes=injection)
     state_injection = {"operacao": op_injection}
-    result_injection = sanitize_input(state_injection)
+    sanitize_input(state_injection)
 
     # Tax calculation should be identical (observacoes don't affect calculation)
     tributo_benign = calcular_tributo_atual(op_benign.valor_frete)
