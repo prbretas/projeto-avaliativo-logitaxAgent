@@ -23,6 +23,17 @@ env/
 *.db
 data/chromadb/
 
+# Manual interno (não versionar)
+# MANUAL_USUARIO.md
+# MANUAL_TESTES.md
+
+#arquivos de desenvolvimento
+checklist_projeto_M2.2.md
+StudyNote-ProjectRequirements-REFINED.md
+StudyNote-ProjectRequirements.MD
+projectmemo.md
+ideiasdesenvolvimento.md
+
 # OS
 .DS_Store
 Thumbs.db
