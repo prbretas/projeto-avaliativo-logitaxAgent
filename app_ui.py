@@ -8,6 +8,10 @@ import os
 import uuid
 
 import streamlit as st
+from dotenv import load_dotenv
+
+# Load .env file (LLM config, paths, etc.)
+load_dotenv()
 
 # Ensure local mode for Tool_Transicao (no HTTP needed)
 os.environ.setdefault("TOOL_TRANSICAO_MODE", "local")
