@@ -20,6 +20,16 @@ from src.tools.client_transicao import (
     consultar_tabela_transicao,
 )
 
+# All tests in this file need "api" mode to test HTTP retry/fallback logic
+pytestmark = pytest.mark.asyncio
+
+
+@pytest.fixture(autouse=True)
+def force_api_mode():
+    """Force TOOL_TRANSICAO_MODE='api' for all tests in this module."""
+    with patch("src.tools.client_transicao.TOOL_TRANSICAO_MODE", "api"):
+        yield
+
 
 @pytest.mark.asyncio
 async def test_fallback_quando_api_indisponivel():
