@@ -87,7 +87,7 @@ async def consultar_tabela_transicao(
     """
     # Local mode: skip HTTP entirely, use JSON file directly
     if TOOL_TRANSICAO_MODE == "local":
-        return _carregar_fallback_local(ano, uf_origem, uf_destino)
+        return _carregar_dados_local(ano, uf_origem, uf_destino)
 
     # API mode: try HTTP endpoint with retries
     params = {
@@ -143,6 +143,48 @@ async def consultar_tabela_transicao(
     )
 
     return _carregar_fallback_local(ano, uf_origem, uf_destino)
+
+
+def _carregar_dados_local(
+    ano: int,
+    uf_origem: str = "SP",
+    uf_destino: str = "RJ",
+) -> ConsultaTransicaoResult:
+    """Load transition data from local JSON (normal operation mode).
+
+    Used when TOOL_TRANSICAO_MODE=local. This is NOT a fallback — it's the
+    primary data source for standalone operation (Streamlit, tests).
+
+    Args:
+        ano: Reference year to look up.
+        uf_origem: Origin UF for ICMS interestadual lookup.
+        uf_destino: Destination UF for ICMS interestadual lookup.
+
+    Returns:
+        ConsultaTransicaoResult with fallback_usado=False.
+    """
+    from src.tools.icms_interestadual import consultar_icms_interestadual
+
+    with open(TABELA_TRANSICAO_LOCAL_PATH, encoding="utf-8") as f:
+        tabela: list[dict] = json.load(f)
+
+    entrada = next((item for item in tabela if item["ano"] == ano), None)
+
+    if entrada is None:
+        raise ValueError(f"Ano {ano} não encontrado na tabela local: {TABELA_TRANSICAO_LOCAL_PATH}")
+
+    # Add ICMS interestadual rate based on route
+    icms_rate = consultar_icms_interestadual(uf_origem, uf_destino)
+    entrada["aliquota_icms_interestadual_pct"] = icms_rate
+
+    dados = TabelaTransicaoResponse(**entrada)
+
+    return ConsultaTransicaoResult(
+        dados=dados,
+        fallback_usado=False,
+        fonte=f"tabela_local_{dados.versao}",
+        warning=None,
+    )
 
 
 def _carregar_fallback_local(
