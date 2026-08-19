@@ -13,6 +13,7 @@ os.environ.setdefault("TOOL_TRANSICAO_MODE", "local")
 
 from src.graph.graph import build_graph  # noqa: E402
 from src.models.operacao import OperacaoFrete  # noqa: E402
+from src.persistence.checkpointer import SessionCheckpointer  # noqa: E402
 
 st.set_page_config(page_title="LogitaxAgent — Simulador IBS/CBS", page_icon="🧮", layout="wide")
 
@@ -288,6 +289,90 @@ if st.button("🚀 Simular Impacto Tributário", type="primary", use_container_w
         - **IBS**: Imposto sobre Bens e Serviços (estadual/municipal, substitui ICMS)
         - **ICMS residual**: ICMS que ainda incide durante a transição (diminui a cada ano)
         """)
+
+    # --- Human Review Section ---
+    st.divider()
+    st.subheader("✅ Revisão Humana")
+    st.markdown(
+        "O resultado precisa de **aprovação humana** antes de ser exportado. "
+        "Revise os valores acima e decida:"
+    )
+
+    # Save state for review
+    thread_id = result.get("thread_id", f"streamlit-{id(st.session_state)}")
+    _checkpointer = SessionCheckpointer()
+
+    # Serialize and persist
+    resultados_serialized = []
+    for r in resultados:
+        if hasattr(r, "model_dump"):
+            resultados_serialized.append(r.model_dump())
+        elif isinstance(r, dict):
+            resultados_serialized.append(r)
+
+    state_to_persist = {
+        "thread_id": thread_id,
+        "resultados_por_ano": resultados_serialized,
+        "justificativa": justificativa,
+        "comentario_agente": comentario,
+        "alertas": alertas,
+        "aprovado_humano": None,
+        "export_status": "awaiting_review",
+    }
+    _checkpointer.save(thread_id, state_to_persist)
+    st.session_state["pending_thread_id"] = thread_id
+
+    col_approve, col_reject = st.columns(2)
+    with col_approve:
+        if st.button("✅ Aprovar Resultado", type="primary", use_container_width=True):
+            from src.graph.nodes.export_result import (
+                _build_webhook_payload,
+                _send_webhook_sync,
+            )
+            from src.observability.logger import log_audit_event
+
+            state_to_persist["aprovado_humano"] = True
+            state_to_persist["export_status"] = "approved"
+
+            # Try webhook
+            webhook_payload = _build_webhook_payload(state_to_persist)
+            webhook_sent = _send_webhook_sync(webhook_payload)
+            state_to_persist["export_status"] = (
+                "exported" if webhook_sent else "approved_no_webhook"
+            )
+            _checkpointer.save(thread_id, state_to_persist)
+
+            log_audit_event(
+                thread_id=thread_id,
+                event_type="decisao_humana",
+                node_name="human_review_ui",
+                status="info",
+                details="Aprovado via interface Streamlit",
+            )
+
+            st.success("✅ Resultado **aprovado** e exportado!")
+            if webhook_sent:
+                st.caption("Webhook n8n disparado com sucesso.")
+            else:
+                st.caption("Webhook não configurado (WEBHOOK_N8N_URL).")
+
+    with col_reject:
+        if st.button("❌ Rejeitar Resultado", use_container_width=True):
+            from src.observability.logger import log_audit_event
+
+            state_to_persist["aprovado_humano"] = False
+            state_to_persist["export_status"] = "rejected"
+            _checkpointer.save(thread_id, state_to_persist)
+
+            log_audit_event(
+                thread_id=thread_id,
+                event_type="decisao_humana",
+                node_name="human_review_ui",
+                status="info",
+                details="Rejeitado via interface Streamlit",
+            )
+
+            st.error("❌ Resultado **rejeitado**. Nenhuma exportação realizada.")
 
 # --- Rodapé ---
 st.divider()
