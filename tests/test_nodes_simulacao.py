@@ -76,36 +76,47 @@ def _make_consulta_result(ano: int) -> ConsultaTransicaoResult:
 # --- Tests for route_regime (Task 5.5) ---
 
 class TestRouteRegime:
-    """Tests for the route_regime conditional edge function."""
+    """Tests for the route_regime node and _route_by_regime conditional edge."""
 
-    def test_routes_simples_nacional_to_hibrido(self):
-        """Simples Nacional should route to simular_regime_hibrido_simples."""
+    def test_node_returns_empty_dict(self):
+        """route_regime node should return empty dict (routing is via conditional edge)."""
         state = {"operacao": _make_operacao("simples_nacional")}
         result = route_regime(state)
+        assert result == {}
+
+    def test_route_by_regime_simples_nacional(self):
+        """_route_by_regime should route simples_nacional to hibrido."""
+        from src.graph.graph import _route_by_regime
+        state = {"operacao": _make_operacao("simples_nacional")}
+        result = _route_by_regime(state)
         assert result == "simular_regime_hibrido_simples"
 
-    def test_routes_lucro_real_to_regular(self):
-        """Lucro Real should route to simular_regime_regular."""
+    def test_route_by_regime_lucro_real(self):
+        """_route_by_regime should route lucro_real to regular."""
+        from src.graph.graph import _route_by_regime
         state = {"operacao": _make_operacao("lucro_real")}
-        result = route_regime(state)
+        result = _route_by_regime(state)
         assert result == "simular_regime_regular"
 
-    def test_routes_lucro_presumido_to_regular(self):
-        """Lucro Presumido should route to simular_regime_regular."""
+    def test_route_by_regime_lucro_presumido(self):
+        """_route_by_regime should route lucro_presumido to regular."""
+        from src.graph.graph import _route_by_regime
         state = {"operacao": _make_operacao("lucro_presumido")}
-        result = route_regime(state)
+        result = _route_by_regime(state)
         assert result == "simular_regime_regular"
 
-    def test_routes_with_dict_operacao(self):
-        """Should also work when operacao is a plain dict."""
+    def test_route_by_regime_with_dict_operacao(self):
+        """_route_by_regime should also work when operacao is a plain dict."""
+        from src.graph.graph import _route_by_regime
         state = {"operacao": {"regime_tributario": "simples_nacional"}}
-        result = route_regime(state)
+        result = _route_by_regime(state)
         assert result == "simular_regime_hibrido_simples"
 
-    def test_routes_dict_lucro_real(self):
-        """Should route dict with lucro_real to regular."""
+    def test_route_by_regime_dict_lucro_real(self):
+        """_route_by_regime should route dict with lucro_real to regular."""
+        from src.graph.graph import _route_by_regime
         state = {"operacao": {"regime_tributario": "lucro_real"}}
-        result = route_regime(state)
+        result = _route_by_regime(state)
         assert result == "simular_regime_regular"
 
 

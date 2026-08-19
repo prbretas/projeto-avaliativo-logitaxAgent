@@ -24,30 +24,53 @@ from src.models.erro import CampoInvalido, ErroEstruturado
 from src.models.operacao import OperacaoFrete
 
 
-def parse_operacao(payload: dict[str, Any]) -> dict[str, Any]:
-    """Validate a raw JSON payload against the OperacaoFrete schema.
+def parse_operacao(state: dict[str, Any]) -> dict[str, Any]:
+    """Validate the operation data in the LangGraph state.
+
+    As a LangGraph node, this receives the full state dict. It checks if
+    'operacao' already contains a validated OperacaoFrete model (e.g., when
+    the API pre-validates). If not, it attempts to validate from raw fields
+    in the state.
 
     Uses Pydantic model_validate to attempt parsing. On failure, extracts
     ALL validation errors from the ValidationError and constructs a single
     ErroEstruturado response containing every invalid field.
 
     Args:
-        payload: Raw dict representing the JSON input from the user.
+        state: Current graph state dict. May contain:
+            - "operacao": already validated OperacaoFrete, OR
+            - raw fields (modal, origem_uf, etc.) to be validated
 
     Returns:
-        A dict with keys:
+        A partial state update dict with keys:
         - "operacao": The validated OperacaoFrete instance, or None if invalid.
         - "error": An ErroEstruturado instance with all errors, or None if valid.
     """
-    try:
-        operacao = OperacaoFrete.model_validate(payload)
+    # If operacao is already a validated Pydantic model, pass through
+    operacao = state.get("operacao")
+    if operacao is not None and hasattr(operacao, "model_dump"):
         return {"operacao": operacao, "error": None}
+
+    # If operacao is a dict, try to validate it
+    if isinstance(operacao, dict):
+        payload = operacao
+    else:
+        # Try to extract raw fields from state itself (legacy behavior)
+        payload = {
+            k: v for k, v in state.items()
+            if k in ("modal", "origem_uf", "destino_uf", "regime_tributario",
+                     "valor_frete", "data_referencia", "observacoes")
+        }
+
+    try:
+        operacao_validated = OperacaoFrete.model_validate(payload)
+        return {"operacao": operacao_validated, "error": None}
     except ValidationError as exc:
         campos_invalidos = _extrair_campos_invalidos(exc)
         erro = ErroEstruturado(
             erro="Erro de validação na operação de frete",
             campos_invalidos=campos_invalidos,
-            thread_id=None,
+            thread_id=state.get("thread_id"),
             timestamp=datetime.now(),
         )
         return {"operacao": None, "error": erro}

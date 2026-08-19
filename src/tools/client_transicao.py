@@ -5,6 +5,10 @@ Implements Requirements 5.5, 5.6, 5.7:
 - Retry up to 2 times with exponential backoff (1s, 2s)
 - Fallback to data/tabela_transicao_local.json when all retries fail
 - Sets fallback_usado=True and includes warning with file version
+
+Mode selection (via TOOL_TRANSICAO_MODE env var):
+- "api" (default): tries HTTP endpoint first, falls back to local JSON
+- "local": uses local JSON directly (no HTTP calls, no delay)
 """
 
 from __future__ import annotations
@@ -12,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -21,8 +26,13 @@ from src.models.tabela_transicao import TabelaTransicaoResponse
 
 logger = logging.getLogger(__name__)
 
-# Default endpoint URL (configurable)
-DEFAULT_ENDPOINT_URL = "http://localhost:8000/tools/tabela-transicao"
+# Mode selection: "api" (try HTTP first) or "local" (skip HTTP, use JSON directly)
+TOOL_TRANSICAO_MODE = os.getenv("TOOL_TRANSICAO_MODE", "local")
+
+# Default endpoint URL (configurable via env var)
+DEFAULT_ENDPOINT_URL = os.getenv(
+    "TOOL_TRANSICAO_URL", "http://localhost:8000/tools/tabela-transicao"
+)
 
 # Retry configuration
 REQUEST_TIMEOUT_SECONDS = 5.0
@@ -61,9 +71,9 @@ async def consultar_tabela_transicao(
 ) -> ConsultaTransicaoResult:
     """Consult the Tool_Transicao endpoint with retry and fallback.
 
-    Makes an HTTP GET request to the transition table endpoint. On failure,
-    retries up to 2 times with exponential backoff (1s, 2s). If all attempts
-    fail, falls back to the local JSON file.
+    Behavior depends on TOOL_TRANSICAO_MODE:
+    - "local": reads directly from data/tabela_transicao_local.json (instant, no HTTP)
+    - "api": makes HTTP GET to the endpoint, retries 2x, then fallback to local JSON
 
     Args:
         ano: Reference year (2026–2033).
@@ -75,6 +85,11 @@ async def consultar_tabela_transicao(
     Returns:
         ConsultaTransicaoResult with the transition data, fallback flag, and source.
     """
+    # Local mode: skip HTTP entirely, use JSON file directly
+    if TOOL_TRANSICAO_MODE == "local":
+        return _carregar_fallback_local(ano)
+
+    # API mode: try HTTP endpoint with retries
     params = {
         "ano": ano,
         "uf_origem": uf_origem,
@@ -82,7 +97,6 @@ async def consultar_tabela_transicao(
         "regime": regime,
     }
 
-    # Attempt API call with retries
     last_exception: Exception | None = None
 
     for attempt in range(1 + MAX_RETRIES):  # initial + 2 retries = 3 attempts total

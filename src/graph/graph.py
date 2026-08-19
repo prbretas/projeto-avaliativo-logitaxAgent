@@ -85,8 +85,10 @@ def build_graph() -> StateGraph:
     Returns:
         Compiled StateGraph ready for execution.
     """
-    # Define the state graph with dict-based state
-    graph = StateGraph(dict)
+    from src.graph.state import AgentGraphState
+
+    # Define the state graph with typed state
+    graph = StateGraph(AgentGraphState)
 
     # --- Register Nodes ---
     graph.add_node("parse_operacao", parse_operacao)

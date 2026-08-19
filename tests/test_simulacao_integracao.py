@@ -23,6 +23,7 @@ import pytest
 from src.graph.nodes.parse_operacao import parse_operacao
 from src.graph.nodes.sanitize_input import sanitize_input
 from src.graph.nodes.route_regime import route_regime
+from src.graph.graph import _route_by_regime
 from src.graph.nodes.simular_regime import (
     simular_regime_regular,
     simular_regime_hibrido_simples,
@@ -86,7 +87,7 @@ class TestFluxoCompleto:
 
         # 3. Route (returns next node name as string)
         state.update(sanitized)
-        routed = route_regime(state)
+        routed = _route_by_regime(state)
         assert routed == "simular_regime_regular"
 
     def test_fluxo_parse_sanitize_route_simples(self, operacao_valida_simples):
@@ -98,7 +99,7 @@ class TestFluxoCompleto:
         sanitized = sanitize_input(state)
         state.update(sanitized)
 
-        routed = route_regime(state)
+        routed = _route_by_regime(state)
         assert routed == "simular_regime_hibrido_simples"
 
     @pytest.mark.asyncio
@@ -123,7 +124,7 @@ class TestFluxoCompleto:
         state.update(sanitized)
 
         # Route
-        routed = route_regime(state)
+        routed = _route_by_regime(state)
         assert routed == "simular_regime_regular"
 
         # Simulate regime
@@ -182,7 +183,7 @@ class TestFluxoCompleto:
         sanitized = sanitize_input(state)
         state.update(sanitized)
 
-        routed = route_regime(state)
+        routed = _route_by_regime(state)
         assert routed == "simular_regime_hibrido_simples"
 
         regime_result = simular_regime_hibrido_simples(state)
@@ -307,7 +308,7 @@ class TestFallbackScenario:
 
         sanitized = sanitize_input(state)
         state.update(sanitized)
-        routed = route_regime(state)
+        routed = _route_by_regime(state)
         assert routed == "simular_regime_regular"
         regime_result = simular_regime_regular(state)
         state.update(regime_result)

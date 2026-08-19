@@ -16,30 +16,16 @@ from __future__ import annotations
 from typing import Any
 
 
-def route_regime(state: dict[str, Any]) -> str:
-    """Route execution based on the operation's tax regime.
+def route_regime(state: dict[str, Any]) -> dict[str, Any]:
+    """Node that prepares state for conditional routing based on tax regime.
 
-    Examines `state["operacao"].regime_tributario` and returns the name
-    of the next node to execute.
+    This node is a pass-through that doesn't modify state. The actual routing
+    decision is made by the conditional edge function (_route_by_regime in graph.py).
 
     Args:
-        state: The current AgentState dict containing an "operacao" key
-               with an OperacaoFrete instance (or dict with regime_tributario).
+        state: The current AgentState dict containing an "operacao" key.
 
     Returns:
-        "simular_regime_hibrido_simples" for simples_nacional regime.
-        "simular_regime_regular" for lucro_real or lucro_presumido regimes.
+        Empty dict (no state changes needed, routing is handled by conditional edge).
     """
-    operacao = state["operacao"]
-
-    # Support both Pydantic model and plain dict access
-    if hasattr(operacao, "regime_tributario"):
-        regime = operacao.regime_tributario
-    else:
-        regime = operacao["regime_tributario"]
-
-    if regime == "simples_nacional":
-        return "simular_regime_hibrido_simples"
-
-    # lucro_real and lucro_presumido both get full credits
-    return "simular_regime_regular"
+    return {}
