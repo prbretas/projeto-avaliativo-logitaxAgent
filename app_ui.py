@@ -26,6 +26,35 @@ st.markdown(
     "**antes e depois** da Reforma Tributária."
 )
 
+# --- Sidebar: info do LLM ---
+with st.sidebar:
+    st.subheader("🤖 Modelo de IA")
+    _llm_model = os.environ.get("LLM_MODEL_NAME", "não configurado")
+    _llm_endpoint = os.environ.get("LLM_ENDPOINT", "não configurado")
+    _llm_key = os.environ.get("OPENAI_API_KEY", "")
+
+    # Detect provider from endpoint
+    if "ollama" in _llm_endpoint or _llm_key.lower() == "ollama":
+        _provider = "Ollama (local)"
+    elif "groq" in _llm_endpoint:
+        _provider = "Groq (nuvem)"
+    elif "openai" in _llm_endpoint:
+        _provider = "OpenAI"
+    elif _llm_key:
+        _provider = "Customizado"
+    else:
+        _provider = "Não configurado"
+
+    st.caption(f"**Provider:** {_provider}")
+    st.caption(f"**Modelo:** {_llm_model}")
+
+    if not _llm_key:
+        st.warning("LLM não configurado. Veja MANUAL_CONFIGURACAO_LLM.md")
+    else:
+        st.success("LLM ativo")
+
+    st.divider()
+
 # --- Tabs: Simulador | Chat ---
 tab_simular, tab_chat = st.tabs(["📊 Simulador", "💬 Chat com o Agente"])
 
@@ -235,7 +264,9 @@ with tab_simular:
                     "Ano": f"{destaque}{ano}",
                     "PIS (1,65%)": f"R$ {da.get('pis_valor', 0):,.2f}",
                     "COFINS (7,6%)": f"R$ {da.get('cofins_valor', 0):,.2f}",
-                    f"ICMS ({da.get('icms_aliquota_pct', 12)}%)": f"R$ {da.get('icms_valor', 0):,.2f}",
+                    f"ICMS ({da.get('icms_aliquota_pct', 12)}%)": (
+                        f"R$ {da.get('icms_valor', 0):,.2f}"
+                    ),
                     "Total Atual": f"R$ {rd['valor_tributo_atual']:,.2f}",
                     f"CBS ({dn.get('cbs_aliquota_pct', 0)}%)": f"R$ {dn.get('cbs_valor', 0):,.2f}",
                     f"IBS ({dn.get('ibs_aliquota_pct', 0)}%)": f"R$ {dn.get('ibs_valor', 0):,.2f}",
