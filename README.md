@@ -330,11 +330,9 @@ POST /simular
 
 ### Limitações Conhecidas
 
-1. **Alíquotas projetadas** — valores de IBS pleno (19.1%) são estimativas do CGIBS, não definitivos até resolução do Senado
-2. **LLM para justificativa** — requer API key e pode ter latência variável; sem API key, justificativa não é gerada (comentário determinístico ainda funciona)
-3. **ChromaDB local** — base de conhecimento precisa ser re-indexada manualmente quando legislação muda
-4. **Human-in-the-loop síncrono** — timeout de 24h; sem mecanismo de delegação
-5. **ICMS intraestadual simplificado** — operações dentro do mesmo estado usam alíquota interna genérica (pode variar por produto)
+1. **Alíquotas projetadas** — valores de IBS pleno (19.1%) são estimativas do CGIBS, não definitivos até resolução do Senado. O sistema sinaliza dados estimados com flag "Alíquotas estimadas" na UI.
+2. **ChromaDB local** — base de conhecimento atualizada via `scripts/run_ingestao.py` (pode ser automatizado via cron)
+3. **ICMS intraestadual simplificado** — operações dentro do mesmo estado usam alíquota interna genérica (pode variar por produto/segmento)
 
 ### Ciclo de Refinamento
 
@@ -346,10 +344,11 @@ Documentado em `docs/evidencias/ciclo-refinamento.md` — 4 ciclos reais:
 
 ### Evoluções Futuras
 
+- Consulta a APIs oficiais quando Senado publicar alíquotas definitivas (atualização automática)
+- Dashboard BI com histórico de simulações por rota/regime (tendência temporal)
 - Integração com e-Financeira para dados reais de CT-e
 - Multi-tenancy com autenticação JWT
-- Consulta a APIs oficiais quando disponíveis (substituir projeções por dados definitivos)
-- Dashboard BI com histórico de simulações por rota/regime
+- Exportação direta para ERP (JSON/XML no formato do CT-e)
 
 ## 11. Integrabilidade
 

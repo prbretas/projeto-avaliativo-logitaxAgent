@@ -298,17 +298,19 @@ with tab_simular:
                 "Os cálculos numéricos são determinísticos."
             )
 
-        # --- Alertas ---
-        if alertas:
+        # --- Alertas (filtrar alertas técnicos, mostrar apenas relevantes) ---
+        alertas_usuario = [a for a in alertas if "fallback" in a.lower() or "dados" in a.lower()]
+        if alertas_usuario:
             st.divider()
-            st.subheader("⚠️ Alertas")
-            for alerta in alertas:
-                st.warning(alerta)
+            for alerta in alertas_usuario:
+                st.caption(f"ℹ️ {alerta}")
 
-        # --- Human Review ---
+        # --- Ações ---
         st.divider()
-        st.subheader("✅ Revisão Humana")
-        st.markdown("Revise os valores e decida:")
+        st.subheader("📤 Exportar Resultado")
+        st.markdown(
+            "Exporte este resultado para seu sistema (ERP/TMS) ou envie para aprovação do gestor."
+        )
 
         thread_id = result.get("thread_id", f"ui-{uuid.uuid4()}")
         _checkpointer = SessionCheckpointer()
@@ -328,7 +330,7 @@ with tab_simular:
 
         col_approve, col_reject = st.columns(2)
         with col_approve:
-            if st.button("✅ Aprovar", type="primary", use_container_width=True):
+            if st.button("📤 Exportar e Aprovar", type="primary", use_container_width=True):
                 from src.graph.nodes.export_result import (
                     _build_webhook_payload,
                     _send_webhook_sync,
@@ -352,7 +354,7 @@ with tab_simular:
                 st.success("✅ Aprovado e exportado!")
 
         with col_reject:
-            if st.button("❌ Rejeitar", use_container_width=True):
+            if st.button("🔄 Nova Simulação", use_container_width=True):
                 from src.observability.logger import log_audit_event
 
                 state_to_persist["aprovado_humano"] = False
@@ -365,7 +367,7 @@ with tab_simular:
                     status="info",
                     details="Rejeitado via Streamlit",
                 )
-                st.error("❌ Rejeitado. Nenhuma exportação realizada.")
+                st.info("🔄 Resultado descartado. Ajuste os parâmetros e simule novamente.")
 
 
 # ============================================================
