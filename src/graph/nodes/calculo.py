@@ -24,34 +24,39 @@ ICMS_BASE_PCT = 12.0
 REGIME_ATUAL_TOTAL_PCT = PIS_PCT + COFINS_PCT + ICMS_BASE_PCT  # 21.25%
 
 
-def calcular_tributo_atual(valor_frete: float) -> float:
+def calcular_tributo_atual(valor_frete: float, icms_pct: float = ICMS_BASE_PCT) -> float:
     """Calculate tax under the current regime (Regime_Atual).
 
-    Formula: valor_frete × (PIS 1.65% + COFINS 7.6% + ICMS 12.0%) = valor_frete × 21.25%
+    Formula: valor_frete × (PIS 1.65% + COFINS 7.6% + ICMS%)
 
     Args:
         valor_frete: Freight value in BRL (must be > 0).
+        icms_pct: ICMS interestadual rate (default 12.0%, varies by UF pair).
 
     Returns:
         Tax amount rounded to 2 decimal places.
 
     Requirements: 2.1
     """
-    return round(valor_frete * REGIME_ATUAL_TOTAL_PCT / 100, 2)
+    total_pct = PIS_PCT + COFINS_PCT + icms_pct
+    return round(valor_frete * total_pct / 100, 2)
 
 
-def calcular_detalhe_regime_atual(valor_frete: float) -> DetalheRegimeAtual:
+def calcular_detalhe_regime_atual(
+    valor_frete: float, icms_pct: float = ICMS_BASE_PCT
+) -> DetalheRegimeAtual:
     """Calculate detailed breakdown of current regime taxes.
 
     Args:
         valor_frete: Freight value in BRL (must be > 0).
+        icms_pct: ICMS interestadual rate (varies by UF pair).
 
     Returns:
         DetalheRegimeAtual with individual PIS, COFINS, ICMS values.
     """
     pis_valor = round(valor_frete * PIS_PCT / 100, 2)
     cofins_valor = round(valor_frete * COFINS_PCT / 100, 2)
-    icms_valor = round(valor_frete * ICMS_BASE_PCT / 100, 2)
+    icms_valor = round(valor_frete * icms_pct / 100, 2)
     total = round(pis_valor + cofins_valor + icms_valor, 2)
 
     return DetalheRegimeAtual(
@@ -59,7 +64,7 @@ def calcular_detalhe_regime_atual(valor_frete: float) -> DetalheRegimeAtual:
         pis_valor=pis_valor,
         cofins_aliquota_pct=COFINS_PCT,
         cofins_valor=cofins_valor,
-        icms_aliquota_pct=ICMS_BASE_PCT,
+        icms_aliquota_pct=icms_pct,
         icms_valor=icms_valor,
         total=total,
     )
@@ -110,7 +115,8 @@ def calcular_detalhe_regime_novo(
     """
     cbs_valor = round(valor_frete * tabela.aliquota_cbs_pct / 100, 2)
     ibs_valor = round(valor_frete * tabela.aliquota_ibs_pct / 100, 2)
-    icms_residual_aliquota = round(ICMS_BASE_PCT * tabela.aliquota_icms_pct_da_base / 100, 2)
+    icms_base = tabela.aliquota_icms_interestadual_pct
+    icms_residual_aliquota = round(icms_base * tabela.aliquota_icms_pct_da_base / 100, 2)
     icms_residual_valor = round(valor_frete * icms_residual_aliquota / 100, 2)
     total = round(cbs_valor + ibs_valor + icms_residual_valor, 2)
 
@@ -151,7 +157,7 @@ def _calcular_tributo_novo_regular(
     aliquota_efetiva = (
         tabela.aliquota_cbs_pct
         + tabela.aliquota_ibs_pct
-        + (ICMS_BASE_PCT * tabela.aliquota_icms_pct_da_base / 100)
+        + (tabela.aliquota_icms_interestadual_pct * tabela.aliquota_icms_pct_da_base / 100)
     )
     tributo_bruto = valor_frete * aliquota_efetiva / 100
     return round(tributo_bruto, 2)
@@ -177,7 +183,7 @@ def _calcular_tributo_novo_simples(
     aliquota_efetiva = (
         tabela.aliquota_cbs_pct
         + tabela.aliquota_ibs_pct
-        + (ICMS_BASE_PCT * tabela.aliquota_icms_pct_da_base / 100)
+        + (tabela.aliquota_icms_interestadual_pct * tabela.aliquota_icms_pct_da_base / 100)
     )
     tributo_bruto = valor_frete * aliquota_efetiva / 100
     return round(tributo_bruto, 2)

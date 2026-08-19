@@ -51,6 +51,12 @@ class TabelaTransicaoResponse(BaseModel):
         ...,
         description="Indica se os dados são de fonte oficial",
     )
+    aliquota_icms_interestadual_pct: float = Field(
+        default=12.0,
+        ge=0.0,
+        le=30.0,
+        description="Alíquota ICMS interestadual aplicável à rota (CONFAZ)",
+    )
 
     @field_validator("ano")
     @classmethod

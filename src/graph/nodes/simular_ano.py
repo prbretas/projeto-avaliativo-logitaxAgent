@@ -70,9 +70,10 @@ async def _simular_ano_individual(
 
     tabela = resultado_tool.dados
 
-    # Step 2: Calculate tax under Regime_Atual
-    tributo_atual = calcular_tributo_atual(valor_frete)
-    detalhe_atual = calcular_detalhe_regime_atual(valor_frete)
+    # Step 2: Calculate tax under Regime_Atual (using ICMS rate from CONFAZ table)
+    icms_pct = tabela.aliquota_icms_interestadual_pct
+    tributo_atual = calcular_tributo_atual(valor_frete, icms_pct)
+    detalhe_atual = calcular_detalhe_regime_atual(valor_frete, icms_pct)
 
     # Step 3: Calculate tax under Regime_Novo
     tributo_novo = calcular_tributo_novo(
