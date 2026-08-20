@@ -180,7 +180,7 @@ class TestSimularAno:
 
         assert "resultados_por_ano" in result
         assert "alertas" in result
-        assert len(result["resultados_por_ano"]) == 4
+        assert len(result["resultados_por_ano"]) == 8
         assert result["alertas"] == []
 
         # Verify chronological order
@@ -207,8 +207,8 @@ class TestSimularAno:
 
         result = await simular_ano(state)
 
-        # Should have 3 successful results (2026, 2030, 2033)
-        assert len(result["resultados_por_ano"]) == 3
+        # Should have 7 successful results (all except 2027)
+        assert len(result["resultados_por_ano"]) == 7
         anos_sucesso = [r.ano for r in result["resultados_por_ano"]]
         assert 2027 not in anos_sucesso
         assert 2026 in anos_sucesso
@@ -237,7 +237,7 @@ class TestSimularAno:
         result = await simular_ano(state)
 
         assert len(result["resultados_por_ano"]) == 0
-        assert len(result["alertas"]) == 4
+        assert len(result["alertas"]) == 8
 
     @pytest.mark.asyncio
     @patch("src.graph.nodes.simular_ano.consultar_tabela_transicao")
@@ -289,7 +289,7 @@ class TestSimularAno:
 
         result = await simular_ano(state)
 
-        assert len(result["resultados_por_ano"]) == 4
+        assert len(result["resultados_por_ano"]) == 8
         # Results should be sorted
         anos = [r.ano for r in result["resultados_por_ano"]]
         assert anos == ANOS_MARCO
@@ -310,4 +310,4 @@ class TestSimularAno:
         }
 
         result = await simular_ano(state)
-        assert len(result["resultados_por_ano"]) == 4
+        assert len(result["resultados_por_ano"]) == 8

@@ -140,7 +140,7 @@ class TestFluxoCompleto:
 
         # Verify results structure
         resultados = state.get("resultados_por_ano", [])
-        assert len(resultados) == 4, f"Expected 4 years, got {len(resultados)}"
+        assert len(resultados) == 8, f"Expected 8 years, got {len(resultados)}"
 
         # Verify each year has required fields
         anos_esperados = {2026, 2027, 2030, 2033}
@@ -198,7 +198,7 @@ class TestFluxoCompleto:
             state.update(anos_result)
 
         resultados = state.get("resultados_por_ano", [])
-        assert len(resultados) == 4
+        assert len(resultados) == 8
 
     def test_retrieve_context_after_simulation(self, operacao_valida_lucro_real):
         """Test retrieve_context with valid state from simulation."""
@@ -335,7 +335,7 @@ class TestFallbackScenario:
             state.update(anos_result)
 
         resultados = state.get("resultados_por_ano", [])
-        assert len(resultados) == 4
+        assert len(resultados) == 8
 
         # Each result should have valid values
         for r in resultados:
