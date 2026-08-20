@@ -143,7 +143,7 @@ class TestFluxoCompleto:
         assert len(resultados) == 8, f"Expected 8 years, got {len(resultados)}"
 
         # Verify each year has required fields
-        anos_esperados = {2026, 2027, 2030, 2033}
+        anos_esperados = {2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033}
         anos_retornados = set()
 
         for r in resultados:
