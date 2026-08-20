@@ -275,7 +275,18 @@ with tab_simular:
 
         # --- Cards de resultado por ano (scroll horizontal) ---
         st.divider()
-        st.subheader("📊 Resultado por Ano de Transição")
+        st.subheader("📊 Projeção: Quanto Você Pagará em Cada Ano")
+        st.markdown(
+            "O valor grande é o **imposto total projetado** para cada ano da transição. "
+            "O sistema **não soma** regime atual + novo — mostra o que você pagará "
+            "**no lugar** do regime atual conforme a substituição avança."
+        )
+        st.caption(
+            "2026: fase-teste (CBS/IBS compensável com PIS/COFINS → impacto zero no caixa) | "
+            "2027-2028: CBS substitui PIS/COFINS | "
+            "2029-2032: IBS substitui ICMS gradualmente | "
+            "2033: ICMS extinto, IBS pleno"
+        )
 
         # Use a horizontal scrollable container
         card_html = '<div style="display:flex; overflow-x:auto; gap:16px; padding:8px 0;">'
@@ -298,6 +309,14 @@ with tab_simular:
             border = "2px solid #FFD700" if is_selected else "1px solid #333"
             star = "⭐ " if is_selected else ""
 
+            # Note for each card
+            if ano == 2026:
+                card_note = "Compensável (impacto zero)"
+            elif delta < 0:
+                card_note = f"Economia R$ {atual - novo:,.2f}"
+            else:
+                card_note = f"Aumento R$ {novo - atual:,.2f}"
+
             card_html += f"""
             <div style="min-width:160px; padding:16px; border-radius:8px;
                         border:{border}; background:#1a1a2e; text-align:center;">
@@ -309,7 +328,10 @@ with tab_simular:
                     {delta_icon} {delta:+.2f}%
                 </div>
                 <div style="font-size:11px; color:#888; margin-top:6px;">
-                    Atual: R$ {atual:,.2f}
+                    Hoje: R$ {atual:,.2f}
+                </div>
+                <div style="font-size:10px; color:#666; margin-top:4px;">
+                    {card_note}
                 </div>
             </div>"""
 
