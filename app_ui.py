@@ -474,6 +474,98 @@ with tab_simular:
             for alerta in alertas_usuario:
                 st.caption(f"ℹ️ {alerta}")
 
+        # --- Alerta cClassTrib (#71) ---
+        st.divider()
+        st.subheader("⚠️ Obrigação Acessória — CT-e")
+        if regime == "simples_nacional":
+            st.warning(
+                "**Simples Nacional:** O preenchimento do campo `cClassTrib` no CT-e é "
+                "**facultativo em 2026** e **obrigatório a partir de 01/01/2027**. "
+                "Prepare-se para a transição."
+            )
+        else:
+            st.error(
+                "**Atenção:** A partir de **agosto/2026**, o campo `cClassTrib` é "
+                "**obrigatório** em todos os CT-e emitidos por empresas do regime regular. "
+                "CT-e sem este campo será **rejeitado pela SEFAZ**."
+            )
+        st.caption("Fonte: NT 2025.001 do CT-e + LC 214/2025, art. 284")
+
+        # --- Comparação entre regimes (#72) ---
+        st.divider()
+        if st.button(
+            "🔄 Comparar os 3 Regimes Tributários para esta rota",
+            use_container_width=True,
+        ):
+            with st.spinner("Simulando Lucro Real, Lucro Presumido e Simples Nacional..."):
+                import pandas as pd
+
+                regimes_para_comparar = [
+                    ("lucro_real", "Lucro Real"),
+                    ("lucro_presumido", "Lucro Presumido"),
+                    ("simples_nacional", "Simples Nacional"),
+                ]
+                comparacao_rows = []
+
+                for reg_key, reg_label in regimes_para_comparar:
+                    try:
+                        op_comp = OperacaoFrete(
+                            modal=modal,
+                            origem_uf=origem_uf,
+                            destino_uf=destino_uf,
+                            regime_tributario=reg_key,
+                            valor_frete=valor_frete,
+                            data_referencia=f"{ano_ref}-06-15",
+                        )
+                        state_comp = {
+                            "operacao": op_comp,
+                            "thread_id": f"comp-{uuid.uuid4()}",
+                            "tentativas_reclassificacao": 0,
+                            "revisao_manual": False,
+                            "resultados_por_ano": [],
+                            "trechos_rag": [],
+                            "justificativa": None,
+                            "alertas": [],
+                            "aprovado_humano": True,
+                        }
+                        res_comp = asyncio.run(_run_graph(state_comp))
+
+                        for r in res_comp.get("resultados_por_ano", []):
+                            rd = r.model_dump() if hasattr(r, "model_dump") else r
+                            comparacao_rows.append(
+                                {
+                                    "Regime": reg_label,
+                                    "Ano": rd["ano"],
+                                    "Imposto Novo (R$)": rd["valor_tributo_novo"],
+                                    "Variação (%)": rd["delta_percentual"],
+                                }
+                            )
+                    except Exception:
+                        pass
+
+            if comparacao_rows:
+                st.subheader("📊 Comparação entre Regimes")
+                st.caption(f"Rota {origem_uf}→{destino_uf} | Frete R$ {valor_frete:,.2f}")
+                df_comp = pd.DataFrame(comparacao_rows)
+                # Pivot: anos como linhas, regimes como colunas
+                df_pivot = df_comp.pivot_table(
+                    index="Ano",
+                    columns="Regime",
+                    values="Imposto Novo (R$)",
+                    aggfunc="first",
+                )
+
+                def _color_min(row):
+                    """Highlight minimum value (best regime) in green."""
+                    styles = [""] * len(row)
+                    min_idx = row.values.argmin()
+                    styles[min_idx] = "color: #4CAF50; font-weight: bold"
+                    return styles
+
+                styled_comp = df_pivot.style.apply(_color_min, axis=1).format("R$ {:,.2f}")
+                st.dataframe(styled_comp, use_container_width=True)
+                st.caption("🟢 Verde = regime mais vantajoso para aquele ano.")
+
         # --- Ações ---
         st.divider()
         st.subheader("📤 Exportar Resultado")
