@@ -2,26 +2,20 @@
 
 ## Contexto do projeto
 
-Este documento especifica a **evolução do projeto `AgenteClassTrib`** (M2.1 — classificação
-tributária de frete) para atender ao **Projeto Avaliativo M2.2** do curso IA para
-Desenvolvedores (SCTEC/SENAI).
+Este documento especifica o **logitaxAgent** — um sistema híbrido agêntico para atender ao
+**Projeto Avaliativo M2.2** do curso IA para Desenvolvedores (SCTEC/SENAI).
 
-O M2.1 já entrega: classificação de `cClassTrib`, RAG sobre a LC 214/2025, human-in-the-loop
-via `interrupt()`, API FastAPI, checkpointer SQLite.
+O logitaxAgent entrega a capacidade de **simular o impacto financeiro da Reforma Tributária
+em uma operação de frete**, com arquitetura agêntica completa (paralelização, cenário
+adversarial, observabilidade correlacionada, QA com IA, DevOps inteligente, integração
+low-code).
 
-O M2.2 adiciona uma nova capacidade de negócio — **simular o impacto financeiro da Reforma
-Tributária em uma operação de frete** — e fecha as lacunas de arquitetura/governança exigidas
-pelo projeto avaliativo (paralelização, cenário adversarial, observabilidade correlacionada,
-QA com IA, DevOps inteligente, integração low-code).
-
-### Capacidades mantidas do M2.1
+### Capacidades do logitaxAgent
 - Parsing e validação da operação de frete (`parse_operacao`)
 - RAG sobre LC 214/2025 e Notas Técnicas do CT-e (Chroma)
 - Determinação de `cClassTrib` via tabela determinística
 - Human-in-the-loop antes de exportar resultado
 - API REST (FastAPI) e persistência de estado (SQLite)
-
-### Capacidades novas do M2.2 (este spec)
 - Simulação financeira comparativa (regime atual x regime IBS/CBS) por ano de transição
 - Paralelização real: simulação de múltiplos anos/cenários no mesmo grafo
 - Tool externa via MCP/API para consulta de índices de correção e tabela de alíquotas

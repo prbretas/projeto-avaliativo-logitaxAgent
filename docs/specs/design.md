@@ -2,7 +2,7 @@
 
 ## 1. Visão geral
 
-Evolução do `AgenteClassTrib` (classificação tributária) para um **sistema híbrido**:
+O **logitaxAgent** é um **sistema híbrido**:
 
 - **Workflow determinístico** para cálculo de tributos e regras de negócio (nunca delegado ao LLM).
 - **Agente** apenas nos pontos onde há linguagem natural: interpretar observações livres da
@@ -122,8 +122,8 @@ class AgentState(BaseModel):
   conforme arts. 343/346/348 da LC 214/2025).
 - Erros de validação retornam HTTP 422 com corpo estruturado `{"erro": "...", "campo": "..."}`.
 
-### 4.2 RAG (Chroma) — reaproveitado do M2.1
-- Mesma base (`data/chroma_db/`), acrescida de trechos sobre transporte de cargas
+### 4.2 RAG (Chroma)
+- Base em `data/chroma_db/`, com trechos sobre transporte de cargas
   (regime regular x Simples Nacional, split payment, não cumulatividade).
 - Cada resposta do node `generate_justification` inclui `fontes_citadas`.
 
@@ -203,7 +203,7 @@ lint (ruff) → testes (pytest) → build (docker build, sem push) → análise 
 
 ---
 
-## 10. Estrutura de diretórios (evolução do M2.1)
+## 10. Estrutura de diretórios
 
 ```
 src/
@@ -221,7 +221,7 @@ src/
       human_review.py
       export_result.py
   tools/
-    tabela_cclasstrib.py        # do M2.1
+    tabela_cclasstrib.py        # classificação tributária
     tabela_transicao.py         # novo — tool consultar_tabela_transicao
   schemas/
     agent_state.py
@@ -231,7 +231,7 @@ src/
     auditoria.py
 
 docs/
-  prompts/                      # do M2.1 + novos prompts de simulação
+  prompts/                      # prompts de sistema (simulação, justificativa)
   qa/
     code-review-diff.md
     priorizacao-testes.md
@@ -261,6 +261,6 @@ data/
 | Decisão | Justificativa |
 |---|---|
 | Paralelização por ano em vez de por UF | Ano-marco é o eixo que a Reforma usa para escalonar alíquota (2026→2033); é o critério mais didático para o avaliador e o mais útil para o embarcador. |
-| Tabela de transição fallback local versionada | Garante que a demo funcione mesmo sem rede, e dá determinismo/rastreabilidade — mesmo princípio já usado no M2.1 para `cClassTrib`. |
+| Tabela de transição fallback local versionada | Garante que a demo funcione mesmo sem rede, e dá determinismo/rastreabilidade. |
 | n8n em vez de Zapier/Make | Self-hosted, gratuito, fácil de exportar o fluxo como JSON versionável no repositório. |
 | Sistema híbrido, não agente autônomo | Cálculo tributário não pode alucinar; a IA fica restrita a linguagem natural (justificativa) e a decisões de roteamento simples. |

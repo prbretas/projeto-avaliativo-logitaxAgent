@@ -1,6 +1,5 @@
 # Manual de Testes — LogitaxAgent
-## Como Executar os Testes (Para Leigos)
-
+## Como Executar os Testes
 ---
 
 ## O que são os testes?

@@ -5,9 +5,9 @@ for concluindo. Sugestão: uma branch `feature/*` por bloco (ver `ROADMAP`/`5.4`
 projeto original) e um card no GitHub Project por task.
 
 - [ ] 1. Preparar base do repositório para o M2.2
-  - Criar branch `develop` a partir da `main` do AgenteClassTrib (se ainda não existir)
+  - Criar branch `develop` a partir da `main` (se ainda não existir)
   - Criar `.kiro/specs/simulador-impacto-ibs-cbs/` com este spec
-  - Atualizar `ROADMAP.md` referenciando a evolução M2.1 → M2.2
+  - Atualizar `ROADMAP.md` referenciando o escopo do M2.2
   - _Requirements: contexto geral_
 
 - [ ] 2. Modelar o novo `AgentState` e schemas
@@ -61,7 +61,7 @@ projeto original) e um card no GitHub Project por task.
   - _Requirements: 4.3, 4.4_
 
 - [ ] 9. Human-in-the-loop e exportação
-  - [ ] 9.1 Adaptar `human_review` (já existente no M2.1) para o novo state
+  - [ ] 9.1 Implementar `human_review` para o state do logitaxAgent
   - [ ] 9.2 `export_result` grava JSON e dispara webhook para o n8n somente após aprovação
   - _Requirements: 3.4, 5.5, 9.3_
 

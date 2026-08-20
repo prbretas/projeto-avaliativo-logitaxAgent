@@ -54,7 +54,7 @@ graph TD
 | Tool API com fallback local | Garante funcionamento offline e determinismo para demos |
 | Human-in-the-loop obrigatório | Exportações podem subsidiar reajustes contratuais — decisão irreversível |
 | SQLite para checkpointer e auditoria | Simplicidade operacional para projeto solo, sem dependência de servidor de banco |
-| ChromaDB para RAG | Reutiliza base do módulo anterior (M2.1), adicionando trechos sobre transporte |
+| ChromaDB para RAG | Busca vetorial sobre trechos da legislação, adicionando trechos sobre transporte |
 
 ### Condição de Parada
 
