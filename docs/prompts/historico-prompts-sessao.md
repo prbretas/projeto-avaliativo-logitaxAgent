@@ -248,3 +248,133 @@
 | Arquivos modificados | ~50 (formatação + funcionalidade) |
 | Testes | 212 passando (CI verde) |
 | Transformação | De "calculadora com scaffolding" para "assistente conversacional com pipeline real" |
+
+
+---
+
+# Sessão 3 — Melhorias de Valor e UX (continuação)
+
+> Data: 19-20/08/2026
+> Ferramenta: Kiro (AI IDE)
+
+---
+
+## Prompt 19: Modal não altera valores + chat na mesma tela
+
+**Pedido:** "eu quero que o cálculo seja feito corretamente... ESSA PARTE O ALERTA SERVE PRA QUE? E O QUE O HUMAN IN THE LOOP FAZ?... incluirmos a parte do CHATBOT NA MESMA TELA"
+
+**Resposta/Ação:**
+- Confirmado: modal não afeta alíquota IBS/CBS (LC 214/2025, art. 284)
+- Unificado app_ui.py com tabs (Simulador + Chat) em uma única tela
+- Removidos alertas técnicos inúteis da UI
+- Botões renomeados: "Exportar e Aprovar" + "Nova Simulação"
+- Criado docs/PROPOSTA_VALOR.md explicando valor para empresas
+
+---
+
+## Prompt 20: Configuração LLM (Ollama/Groq/OpenAI)
+
+**Pedido:** "eu quero utilizar o LLM ollama... a intenção é poder utilizar todas as LLM"
+
+**Resposta/Ação:**
+- .env.example configurado para Ollama local por padrão
+- Suporte a qualquer provider OpenAI-compatible (Ollama, Groq, OpenAI)
+- Header Authorization só enviado quando necessário
+- Criado MANUAL_CONFIGURACAO_LLM.md para leigos
+- Sidebar mostra provider/modelo/status na UI
+
+---
+
+## Prompt 21: .env não carregado
+
+**Pedido:** "ME AJUDE A CONFIGURAR CORRETAMENTE NAO ESTA FUNCIONANDO"
+
+**Resposta/Ação:**
+- Adicionado `load_dotenv()` no início do app_ui.py
+- Corrigia: sidebar mostrava "não configurado" porque .env não era lido
+
+---
+
+## Prompt 22: Valores fixos + fallback + todos os anos
+
+**Pedido:** "está ficando com os mesmos valores... quero que demonstre todos os anos até 2033"
+
+**Resposta/Ação:**
+- ANOS_MARCO alterado de [2026,2027,2030,2033] para [2026-2033] completo
+- Modo local não marca mais como "fallback" (é operação normal)
+- Ano selecionado pelo usuário aparece com destaque ⭐
+- Comentário analítico gerado como fallback se LLM não produzir
+
+---
+
+## Prompt 23: Tabela legível + cores + scroll
+
+**Pedido:** "a tabela deve ser fácil de interpretar... incluir cores... scroll horizontal"
+
+**Resposta/Ação:**
+- Tabela simplificada: Imposto Hoje, Imposto Novo, Crédito, Custo Líquido, Variação, Resultado
+- Cores: verde=economia, vermelho=aumento
+- Detalhamento: azul=regime atual, laranja=regime novo
+- Cards com scroll horizontal (HTML customizado)
+- Traço (—) em vez de "None" para campos vazios
+- Alíquotas % inline em cada valor
+
+---
+
+## Prompt 24: Informações faltantes para agregar valor
+
+**Pedido:** "analise se falta informações relevantes... como podemos melhorar as limitações"
+
+**Resposta/Ação:**
+- Pesquisa sobre LC 214/2025 e modal (art. 284)
+- Issues #70-#75 criadas com critérios de aceite
+- Implementadas: base legal, créditos, split payment, resumo parâmetros, alerta cClassTrib, comparação regimes
+- Nota explicativa sobre modal não afetar alíquota
+
+---
+
+## Prompt 25: Explicar lógica tributária (R$212 vs R$130)
+
+**Pedido:** "CBS e IBS já estão sendo cobrados? por que demonstra o valor se é só um comparativo?"
+
+**Resposta/Ação:**
+- Esclarecido: 2026 é fase-teste (CBS/IBS compensável, impacto zero)
+- 2027+: CBS substitui PIS/COFINS (não é soma)
+- UI atualizada: título "Projeção: Quanto Você Pagará em Cada Ano"
+- Explicação: "sistema não soma regime atual + novo — mostra substituição"
+- Cards com nota: "Compensável (impacto zero)" em 2026
+
+---
+
+## Prompt 26: Comparar regimes + roteiro de vídeo + reorganizar docs
+
+**Pedido:** "vamos subir para o github... atualize documentação e readme... faça um roteiro para gravar video... mover arquivos de projectsfiles"
+
+**Resposta/Ação:**
+- Push de todas as melhorias acumuladas
+- ROTEIRO_VIDEO.md criado com 9 partes (10 min, cobre todos os itens obrigatórios)
+- README e manuais atualizados (interface unificada, Ollama)
+- docs/projectsfiles reorganizado: specs/, avaliacao/, estudo/, evidencias/
+
+---
+
+## Prompt 27: Corrigir CI
+
+**Pedido:** "corrija" (screenshot do CI falhando)
+
+**Resposta/Ação:**
+- Testes esperavam 4 anos mas ANOS_MARCO agora tem 8
+- Corrigido: assertions atualizadas para 8 anos em 2 arquivos de teste
+
+---
+
+# Resumo da Sessão 3
+
+| Métrica | Valor |
+|---------|-------|
+| Prompts processados | 9 (19-27) |
+| Commits pushed | ~10 |
+| Issues resolvidas | #70, #71, #72, #73, #74, #75 |
+| Funcionalidades novas | Base legal, créditos, split payment, comparação regimes, alerta cClassTrib, resumo params, interface unificada |
+| Documentos criados | ROTEIRO_VIDEO.md, PROPOSTA_VALOR.md, MANUAL_CONFIGURACAO_LLM.md, comparativo agentclasstrib |
+| Reorganização | docs/projectsfiles → specs/, avaliacao/, estudo/ |
