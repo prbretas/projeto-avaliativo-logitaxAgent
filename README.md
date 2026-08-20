@@ -157,11 +157,8 @@ cp .env.example .env
 
 ### Executar Interface Gráfica (Streamlit)
 ```bash
-# Modo formulário (simulação visual com gráficos)
+# Interface unificada (formulário + chat na mesma tela)
 streamlit run app_ui.py
-
-# Modo chat (assistente conversacional)
-streamlit run app_chat.py
 ```
 
 ### Executar API
@@ -184,14 +181,21 @@ pytest tests/test_simulacao_integracao.py -v
 
 ### Variáveis de Ambiente (.env.example)
 ```
-LLM_MODEL_NAME=gpt-4o-mini
-LLM_ENDPOINT=https://api.openai.com/v1
-OPENAI_API_KEY=sk-...
+# LLM — compatível com Ollama, Groq, OpenAI (qualquer provider OpenAI-compatible)
+LLM_MODEL_NAME=llama3.1
+LLM_ENDPOINT=http://localhost:11434/v1
+OPENAI_API_KEY=ollama
+
+# Storage
 CHROMADB_PATH=./data/chromadb
 SQLITE_PATH=./data/logitax.db
+
+# Tool
+TOOL_TRANSICAO_MODE=local
+
+# Integração
 WEBHOOK_N8N_URL=http://localhost:5678/webhook/simulacao-concluida
 DELTA_THRESHOLD_PCT=15
-TOOL_TRANSICAO_MODE=local
 ```
 
 ## 7. QA, Observabilidade e DevOps

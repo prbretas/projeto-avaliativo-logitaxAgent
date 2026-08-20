@@ -1,5 +1,4 @@
 # Manual de Instruções — LogitaxAgent
-## Para Usuários (Sem Conhecimento Técnico)
 
 ---
 
@@ -12,14 +11,16 @@ Você informa os dados de um frete → o sistema mostra se vai pagar mais ou men
 ---
 
 ## O Sistema Tem Interface Gráfica?
+## O Sistema Tem Interface Gráfica?
 
-**SIM!** O sistema possui **duas interfaces visuais** (usando Streamlit):
+**SIM!** O sistema possui uma **interface unificada** com duas abas:
 
-1. **Modo Formulário** (`app_ui.py`) — Preencha os campos e clique em simular
-2. **Modo Chat** (`app_chat.py`) — Converse em linguagem natural, como um assistente
+1. **📊 Simulador** — Preencha os campos e clique em simular (formulário visual)
+2. **💬 Chat com o Agente** — Converse em linguagem natural, como um assistente
+
+Tudo em uma única tela: `streamlit run app_ui.py`
 
 Também existe a interface da API (Swagger) para usuários mais técnicos.
-
 ---
 
 ## PASSO A PASSO COMPLETO
@@ -77,10 +78,7 @@ Antes de tudo, você precisa ter instalado no seu computador:
    ```
    streamlit run app_ui.py
    ```
-   Ou, para usar o **modo chat** (assistente conversacional):
-   ```
-   streamlit run app_chat.py
-   ```
+   A interface abre com **duas abas**: Simulador (formulário) e Chat (conversacional).
 4. **O navegador vai abrir automaticamente** com a interface do LogitaxAgent
 5. Se não abrir sozinho, acesse: http://localhost:8501
 
@@ -207,11 +205,10 @@ Se preferir usar a API REST (interface mais técnica, tipo Swagger):
 ```
 1. Abra o Prompt de Comando (cmd)
 2. cd C:\LogitaxAgent\projeto-avaliativo-logitaxAgent-main
-3. streamlit run app_ui.py      (formulário)
-   OU
-   streamlit run app_chat.py    (chat conversacional)
-4. Preencha os dados / converse com o agente
-5. Veja os resultados
-6. Aprove ou rejeite a simulação
-7. Ctrl+C para fechar
+3. streamlit run app_ui.py
+4. Use a aba "Simulador" para formulário OU "Chat" para conversar
+5. Veja os resultados (tabela comparativa, créditos, base legal)
+6. Compare regimes tributários com 1 clique
+7. Exporte ou aprove o resultado
+8. Ctrl+C para fechar
 ```
