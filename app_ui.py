@@ -219,74 +219,243 @@ with tab_simular:
 
         st.success("✅ Simulação concluída com sucesso!")
 
+        # --- Resumo dos parâmetros selecionados (#75) ---
+        regime_labels = {
+            "lucro_real": "Lucro Real",
+            "lucro_presumido": "Lucro Presumido",
+            "simples_nacional": "Simples Nacional",
+        }
+        modal_labels = {
+            "rodoviario": "🚛 Rodoviário",
+            "aereo": "✈️ Aéreo",
+            "ferroviario": "🚂 Ferroviário",
+            "aquaviario": "🚢 Aquaviário",
+        }
+        st.markdown(
+            f"**Simulação:** Frete de **R$ {valor_frete:,.2f}** | "
+            f"Rota **{origem_uf} → {destino_uf}** | "
+            f"Regime **{regime_labels.get(regime, regime)}** | "
+            f"Modal {modal_labels.get(modal, modal)} | "
+            f"Ano referência **{ano_ref}**"
+        )
+        st.caption(
+            "ℹ️ O modal não afeta a alíquota IBS/CBS para transporte de carga "
+            "(LC 214/2025, art. 284). A diferença vem da rota (UFs) e do regime tributário."
+        )
+
         # --- Comentário analítico do agente ---
         if comentario:
             st.divider()
             st.markdown("### 🤖 Análise do Agente")
             st.info(comentario)
 
-        # --- Cards de resultado por ano ---
+        # --- Cards de resultado por ano (scroll horizontal) ---
         st.divider()
         st.subheader("📊 Resultado por Ano de Transição")
 
-        cols = st.columns(len(resultados))
-        for i, r in enumerate(resultados):
+        # Use a horizontal scrollable container
+        card_html = '<div style="display:flex; overflow-x:auto; gap:16px; padding:8px 0;">'
+        for r in resultados:
             rd = r.model_dump() if hasattr(r, "model_dump") else r
-            with cols[i]:
-                delta = rd["delta_percentual"]
-                ano_label = f"Ano {rd['ano']}"
-                # Highlight user's selected year
-                if rd["ano"] == ano_ref:
-                    ano_label = f"⭐ Ano {rd['ano']}"
-                st.metric(
-                    label=ano_label,
-                    value=f"R$ {rd['valor_tributo_novo']:.2f}",
-                    delta=f"{delta:.2f}%",
-                    delta_color="inverse",
-                )
-                st.caption(f"Atual: R$ {rd['valor_tributo_atual']:.2f}")
-                if rd.get("fallback_usado"):
-                    st.caption("⚠️ Dados de fallback")
-                detalhe_novo = rd.get("detalhe_regime_novo", {})
-                if detalhe_novo and not detalhe_novo.get("oficial", True):
-                    st.caption("📊 Alíquotas estimadas")
+            delta = rd["delta_percentual"]
+            ano = rd["ano"]
+            novo = rd["valor_tributo_novo"]
+            atual = rd["valor_tributo_atual"]
+            is_selected = ano == ano_ref
+
+            # Colors
+            if delta < 0:
+                delta_color = "#4CAF50"  # green
+                delta_icon = "↓"
+            else:
+                delta_color = "#f44336"  # red
+                delta_icon = "↑"
+
+            border = "2px solid #FFD700" if is_selected else "1px solid #333"
+            star = "⭐ " if is_selected else ""
+
+            card_html += f"""
+            <div style="min-width:160px; padding:16px; border-radius:8px;
+                        border:{border}; background:#1a1a2e; text-align:center;">
+                <div style="font-size:12px; color:#aaa;">{star}Ano {ano}</div>
+                <div style="font-size:22px; font-weight:bold; margin:8px 0;">
+                    R$ {novo:,.2f}
+                </div>
+                <div style="color:{delta_color}; font-size:14px; font-weight:bold;">
+                    {delta_icon} {delta:+.2f}%
+                </div>
+                <div style="font-size:11px; color:#888; margin-top:6px;">
+                    Atual: R$ {atual:,.2f}
+                </div>
+            </div>"""
+
+        card_html += "</div>"
+        st.markdown(card_html, unsafe_allow_html=True)
 
         # --- Tabela comparativa de impostos ---
         st.divider()
-        st.subheader("📋 Tabela Comparativa de Impostos")
-
-        # Build comparison table data
-        table_rows = []
-        for r in resultados:
-            rd = r.model_dump() if hasattr(r, "model_dump") else r
-            da = rd.get("detalhe_regime_atual", {})
-            dn = rd.get("detalhe_regime_novo", {})
-            ano = rd["ano"]
-            destaque = "⭐ " if ano == ano_ref else ""
-            table_rows.append(
-                {
-                    "Ano": f"{destaque}{ano}",
-                    "PIS (1,65%)": f"R$ {da.get('pis_valor', 0):,.2f}",
-                    "COFINS (7,6%)": f"R$ {da.get('cofins_valor', 0):,.2f}",
-                    f"ICMS ({da.get('icms_aliquota_pct', 12)}%)": (
-                        f"R$ {da.get('icms_valor', 0):,.2f}"
-                    ),
-                    "Total Atual": f"R$ {rd['valor_tributo_atual']:,.2f}",
-                    f"CBS ({dn.get('cbs_aliquota_pct', 0)}%)": f"R$ {dn.get('cbs_valor', 0):,.2f}",
-                    f"IBS ({dn.get('ibs_aliquota_pct', 0)}%)": f"R$ {dn.get('ibs_valor', 0):,.2f}",
-                    f"ICMS res. ({dn.get('icms_residual_aliquota_pct', 0)}%)": (
-                        f"R$ {dn.get('icms_residual_valor', 0):,.2f}"
-                    ),
-                    "Total Novo": f"R$ {rd['valor_tributo_novo']:,.2f}",
-                    "Variação": f"{rd['delta_percentual']:+.2f}%",
-                    "Impacto": rd.get("economia_ou_aumento", ""),
-                }
-            )
+        st.subheader("📋 Comparativo: Quanto Você Paga Hoje vs. Regime Novo")
+        st.caption("Valores em R$ para o frete informado.")
 
         import pandas as pd
 
+        # Credit factor by regime
+        credit_pct = {"lucro_real": 1.0, "lucro_presumido": 0.5, "simples_nacional": 0.0}
+        credit_factor = credit_pct.get(regime, 0.0)
+        credit_label = {
+            "lucro_real": "100% (Lucro Real)",
+            "lucro_presumido": "50% (Presumido)",
+            "simples_nacional": "0% (Simples)",
+        }.get(regime, "0%")
+
+        table_rows = []
+        for r in resultados:
+            rd = r.model_dump() if hasattr(r, "model_dump") else r
+            dn = rd.get("detalhe_regime_novo", {})
+            ano = rd["ano"]
+            atual = rd["valor_tributo_atual"]
+            novo = rd["valor_tributo_novo"]
+            delta = rd["delta_percentual"]
+            economia = rd.get("economia_ou_aumento", "")
+
+            # Calculate credit (#73)
+            cbs_val = dn.get("cbs_valor", 0)
+            ibs_val = dn.get("ibs_valor", 0)
+            credito = round((cbs_val + ibs_val) * credit_factor, 2)
+            custo_liquido = round(novo - credito, 2)
+
+            table_rows.append(
+                {
+                    "Ano": f"{'→ ' if ano == ano_ref else ''}{ano}",
+                    "Imposto Hoje": atual,
+                    "Imposto Novo (bruto)": novo,
+                    "Crédito IBS/CBS": credito,
+                    "Custo Líquido": custo_liquido,
+                    "Variação": delta,
+                    "Resultado": economia,
+                }
+            )
+
         df = pd.DataFrame(table_rows)
-        st.dataframe(df, use_container_width=True, hide_index=True)
+
+        def _style_comparativo(row):
+            """Green for economy, red for increase."""
+            styles = [""] * len(row)
+            var_idx = df.columns.get_loc("Variação")
+            res_idx = df.columns.get_loc("Resultado")
+            liq_idx = df.columns.get_loc("Custo Líquido")
+            if row["Variação"] < 0:
+                styles[var_idx] = "color: #4CAF50; font-weight: bold"
+                styles[res_idx] = "color: #4CAF50"
+                styles[liq_idx] = "color: #4CAF50; font-weight: bold"
+            elif row["Variação"] > 0:
+                styles[var_idx] = "color: #f44336; font-weight: bold"
+                styles[res_idx] = "color: #f44336"
+                styles[liq_idx] = "color: #f44336; font-weight: bold"
+            return styles
+
+        styled_df = df.style.apply(_style_comparativo, axis=1).format(
+            {
+                "Imposto Hoje": "R$ {:,.2f}",
+                "Imposto Novo (bruto)": "R$ {:,.2f}",
+                "Crédito IBS/CBS": "R$ {:,.2f}",
+                "Custo Líquido": "R$ {:,.2f}",
+                "Variação": "{:+.2f}%",
+            }
+        )
+        st.dataframe(styled_df, use_container_width=True, hide_index=True)
+        st.caption(f"Crédito aplicado: {credit_label}")
+
+        # Detailed breakdown with color coding
+        with st.expander("🔍 Ver detalhamento por imposto (PIS, COFINS, ICMS, CBS, IBS)"):
+            st.markdown(
+                "🔵 **Regime Atual** (PIS + COFINS + ICMS) &nbsp;|&nbsp; "
+                "🟠 **Regime Novo** (CBS + IBS + ICMS residual)",
+            )
+            detail_rows = []
+            for r in resultados:
+                rd = r.model_dump() if hasattr(r, "model_dump") else r
+                da = rd.get("detalhe_regime_atual", {})
+                dn = rd.get("detalhe_regime_novo", {})
+
+                def _fmt(valor, pct):
+                    """Format value with percentage, or — if zero."""
+                    if valor == 0 and pct == 0:
+                        return "—"
+                    return f"R$ {valor:,.2f} ({pct}%)"
+
+                detail_rows.append(
+                    {
+                        "Ano": rd["ano"],
+                        "PIS": _fmt(
+                            da.get("pis_valor", 0),
+                            da.get("pis_aliquota_pct", 0),
+                        ),
+                        "COFINS": _fmt(
+                            da.get("cofins_valor", 0),
+                            da.get("cofins_aliquota_pct", 0),
+                        ),
+                        "ICMS": _fmt(
+                            da.get("icms_valor", 0),
+                            da.get("icms_aliquota_pct", 0),
+                        ),
+                        "Total Atual": f"R$ {da.get('total', 0):,.2f}",
+                        "CBS": _fmt(
+                            dn.get("cbs_valor", 0),
+                            dn.get("cbs_aliquota_pct", 0),
+                        ),
+                        "IBS": _fmt(
+                            dn.get("ibs_valor", 0),
+                            dn.get("ibs_aliquota_pct", 0),
+                        ),
+                        "ICMS Residual": _fmt(
+                            dn.get("icms_residual_valor", 0),
+                            dn.get("icms_residual_aliquota_pct", 0),
+                        ),
+                        "Total Novo": f"R$ {dn.get('total', 0):,.2f}",
+                    }
+                )
+            df_detail = pd.DataFrame(detail_rows)
+
+            def _color_detail_cols(col):
+                if col.name in ("PIS", "COFINS", "ICMS", "Total Atual"):
+                    return ["color: #64B5F6"] * len(col)
+                elif col.name in ("CBS", "IBS", "ICMS Residual", "Total Novo"):
+                    return ["color: #FFA726"] * len(col)
+                return [""] * len(col)
+
+            styled_detail = df_detail.style.apply(_color_detail_cols)
+            st.dataframe(styled_detail, use_container_width=True, hide_index=True)
+
+        # --- Base Legal e Notas da Transição (#70) ---
+        with st.expander("📜 Base Legal e Cronograma da Transição"):
+            for r in resultados:
+                rd = r.model_dump() if hasattr(r, "model_dump") else r
+                ano = rd["ano"]
+                # Get base_legal from tool response (stored in fonte_tool metadata)
+                base_legal = rd.get("base_legal", "")
+                nota = rd.get("nota_transicao", "")
+                split = rd.get("split_payment", False)
+
+                if not base_legal:
+                    # Fallback: lookup from local table
+                    import json
+                    from pathlib import Path
+
+                    _data_path = Path("data/tabela_transicao_local.json")
+                    if _data_path.exists():
+                        _tabela = json.loads(_data_path.read_text(encoding="utf-8"))
+                        _entry = next((t for t in _tabela if t["ano"] == ano), {})
+                        base_legal = _entry.get("base_legal", "")
+                        nota = _entry.get("nota_transicao", "")
+                        split = _entry.get("split_payment", False)
+
+                marker = "→ " if ano == ano_ref else ""
+                st.markdown(f"**{marker}{ano}** — {base_legal}")
+                if nota:
+                    st.caption(f"  {nota}")
+                if split:
+                    st.caption("  💳 Split payment ativo: tributo retido no pagamento")
 
         # --- Justificativa legislativa ---
         if justificativa:

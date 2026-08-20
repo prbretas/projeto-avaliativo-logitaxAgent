@@ -57,6 +57,18 @@ class TabelaTransicaoResponse(BaseModel):
         le=30.0,
         description="Alíquota ICMS interestadual aplicável à rota (CONFAZ)",
     )
+    base_legal: str = Field(
+        default="",
+        description="Artigos da LC 214/2025 que fundamentam as alíquotas deste ano",
+    )
+    split_payment: bool = Field(
+        default=False,
+        description="Se split payment está ativo neste ano (tributo retido no pagamento)",
+    )
+    nota_transicao: str = Field(
+        default="",
+        description="Nota explicativa sobre o que muda neste ano da transição",
+    )
 
     @field_validator("ano")
     @classmethod

@@ -32,8 +32,8 @@ from src.tools.client_transicao import consultar_tabela_transicao
 
 logger = logging.getLogger(__name__)
 
-# Default milestone years for fan-out when no specific year is given
-ANOS_MARCO = [2026, 2027, 2030, 2033]
+# All transition years (complete timeline 2026-2033)
+ANOS_MARCO = [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033]
 
 
 async def _simular_ano_individual(

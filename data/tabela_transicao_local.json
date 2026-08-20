@@ -7,7 +7,10 @@
     "aliquota_icms_pct_da_base": 100.0,
     "aliquota_combinada_nova_pct": 1.0,
     "versao": "v1.0",
-    "oficial": true
+    "oficial": true,
+    "base_legal": "LC 214/2025, arts. 343, 346 e 348, I — fase-teste com alíquota simbólica compensável",
+    "split_payment": false,
+    "nota_transicao": "Alíquota-teste de 1% (CBS 0,9% + IBS 0,1%), compensável com PIS/COFINS. Impacto líquido no caixa: zero."
   },
   {
     "ano": 2027,
@@ -17,7 +20,10 @@
     "aliquota_icms_pct_da_base": 100.0,
     "aliquota_combinada_nova_pct": 8.9,
     "versao": "v1.0",
-    "oficial": false
+    "oficial": false,
+    "base_legal": "LC 214/2025, art. 344 — CBS substitui PIS/COFINS integralmente",
+    "split_payment": true,
+    "nota_transicao": "CBS substitui PIS+COFINS. ICMS continua integral. Split payment ativo: tributo retido no pagamento."
   },
   {
     "ano": 2028,
@@ -27,7 +33,10 @@
     "aliquota_icms_pct_da_base": 100.0,
     "aliquota_combinada_nova_pct": 8.9,
     "versao": "v1.0",
-    "oficial": false
+    "oficial": false,
+    "base_legal": "LC 214/2025, art. 344 — último ano com ICMS integral antes do phase-out",
+    "split_payment": true,
+    "nota_transicao": "Mesmo regime de 2027. Último ano antes do início da substituição ICMS→IBS."
   },
   {
     "ano": 2029,
@@ -37,7 +46,10 @@
     "aliquota_icms_pct_da_base": 90.0,
     "aliquota_combinada_nova_pct": 10.71,
     "versao": "v1.0",
-    "oficial": false
+    "oficial": false,
+    "base_legal": "LC 214/2025, art. 344, §1º — IBS assume 10% da alíquota plena, ICMS reduz para 90%",
+    "split_payment": true,
+    "nota_transicao": "Início do phase-out: ICMS reduz 10% ao ano. IBS começa a substituir gradualmente."
   },
   {
     "ano": 2030,
@@ -47,7 +59,10 @@
     "aliquota_icms_pct_da_base": 80.0,
     "aliquota_combinada_nova_pct": 12.62,
     "versao": "v1.0",
-    "oficial": false
+    "oficial": false,
+    "base_legal": "LC 214/2025, art. 344, §1º — IBS assume 20% da alíquota plena, ICMS reduz para 80%",
+    "split_payment": true,
+    "nota_transicao": "ICMS reduzido a 80% da base. IBS cresce proporcionalmente. Carga total pode subir."
   },
   {
     "ano": 2031,
@@ -57,7 +72,10 @@
     "aliquota_icms_pct_da_base": 70.0,
     "aliquota_combinada_nova_pct": 14.53,
     "versao": "v1.0",
-    "oficial": false
+    "oficial": false,
+    "base_legal": "LC 214/2025, art. 344, §1º — IBS assume 30% da alíquota plena, ICMS reduz para 70%",
+    "split_payment": true,
+    "nota_transicao": "ICMS a 70%. Empresas Lucro Real já se beneficiam dos créditos IBS/CBS acumulados."
   },
   {
     "ano": 2032,
@@ -67,7 +85,10 @@
     "aliquota_icms_pct_da_base": 60.0,
     "aliquota_combinada_nova_pct": 16.44,
     "versao": "v1.0",
-    "oficial": false
+    "oficial": false,
+    "base_legal": "LC 214/2025, art. 344, §1º — IBS assume 40% da alíquota plena, ICMS reduz para 60%",
+    "split_payment": true,
+    "nota_transicao": "Último ano com ICMS. Alíquota residual de 60%. Próximo ano: extinção total."
   },
   {
     "ano": 2033,
@@ -77,6 +98,9 @@
     "aliquota_icms_pct_da_base": 0.0,
     "aliquota_combinada_nova_pct": 27.9,
     "versao": "v1.0",
-    "oficial": false
+    "oficial": false,
+    "base_legal": "LC 214/2025, art. 345 — extinção do ICMS, IBS em alíquota plena",
+    "split_payment": true,
+    "nota_transicao": "ICMS extinto. IBS pleno (19,1% estimado). Carga tributária total: CBS 8,8% + IBS 19,1% = 27,9%."
   }
 ]
