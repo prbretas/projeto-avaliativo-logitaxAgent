@@ -198,6 +198,30 @@ with tab_simular:
                 st.error(f"❌ Erro na execução do grafo: {e}")
                 st.stop()
 
+        # Save result to session_state so it persists across button clicks
+        st.session_state["sim_result"] = result
+        st.session_state["sim_params"] = {
+            "modal": modal,
+            "origem_uf": origem_uf,
+            "destino_uf": destino_uf,
+            "regime": regime,
+            "valor_frete": valor_frete,
+            "ano_ref": ano_ref,
+        }
+
+    # --- Display results (from session_state, persists across interactions) ---
+    if "sim_result" not in st.session_state:
+        st.info("Preencha os dados acima e clique em **Simular** para ver os resultados.")
+    else:
+        result = st.session_state["sim_result"]
+        params = st.session_state["sim_params"]
+        _modal = params["modal"]
+        _origem = params["origem_uf"]
+        _destino = params["destino_uf"]
+        _regime = params["regime"]
+        _valor = params["valor_frete"]
+        _ano_ref = params["ano_ref"]
+
         # --- Extract results ---
         resultados = result.get("resultados_por_ano", [])
         comentario = result.get("comentario_agente", "")
@@ -211,7 +235,7 @@ with tab_simular:
             resultados_dicts = [
                 r.model_dump() if hasattr(r, "model_dump") else r for r in resultados
             ]
-            comentario = _gerar_comentario_agente(resultados_dicts, operacao)
+            comentario = _gerar_comentario_agente(resultados_dicts, params)
 
         if not resultados:
             st.error("Nenhum resultado retornado.")
@@ -232,11 +256,11 @@ with tab_simular:
             "aquaviario": "🚢 Aquaviário",
         }
         st.markdown(
-            f"**Simulação:** Frete de **R$ {valor_frete:,.2f}** | "
-            f"Rota **{origem_uf} → {destino_uf}** | "
-            f"Regime **{regime_labels.get(regime, regime)}** | "
-            f"Modal {modal_labels.get(modal, modal)} | "
-            f"Ano referência **{ano_ref}**"
+            f"**Simulação:** Frete de **R$ {_valor:,.2f}** | "
+            f"Rota **{_origem} → {_destino}** | "
+            f"Regime **{regime_labels.get(_regime, _regime)}** | "
+            f"Modal {modal_labels.get(_modal, _modal)} | "
+            f"Ano referência **{_ano_ref}**"
         )
         st.caption(
             "ℹ️ O modal não afeta a alíquota IBS/CBS para transporte de carga "
@@ -261,7 +285,7 @@ with tab_simular:
             ano = rd["ano"]
             novo = rd["valor_tributo_novo"]
             atual = rd["valor_tributo_atual"]
-            is_selected = ano == ano_ref
+            is_selected = ano == _ano_ref
 
             # Colors
             if delta < 0:
@@ -301,12 +325,12 @@ with tab_simular:
 
         # Credit factor by regime
         credit_pct = {"lucro_real": 1.0, "lucro_presumido": 0.5, "simples_nacional": 0.0}
-        credit_factor = credit_pct.get(regime, 0.0)
+        credit_factor = credit_pct.get(_regime, 0.0)
         credit_label = {
             "lucro_real": "100% (Lucro Real)",
             "lucro_presumido": "50% (Presumido)",
             "simples_nacional": "0% (Simples)",
-        }.get(regime, "0%")
+        }.get(_regime, "0%")
 
         table_rows = []
         for r in resultados:
@@ -326,7 +350,7 @@ with tab_simular:
 
             table_rows.append(
                 {
-                    "Ano": f"{'→ ' if ano == ano_ref else ''}{ano}",
+                    "Ano": f"{'→ ' if ano == _ano_ref else ''}{ano}",
                     "Imposto Hoje": atual,
                     "Imposto Novo (bruto)": novo,
                     "Crédito IBS/CBS": credito,
@@ -450,7 +474,7 @@ with tab_simular:
                         nota = _entry.get("nota_transicao", "")
                         split = _entry.get("split_payment", False)
 
-                marker = "→ " if ano == ano_ref else ""
+                marker = "→ " if ano == _ano_ref else ""
                 st.markdown(f"**{marker}{ano}** — {base_legal}")
                 if nota:
                     st.caption(f"  {nota}")
@@ -477,7 +501,7 @@ with tab_simular:
         # --- Alerta cClassTrib (#71) ---
         st.divider()
         st.subheader("⚠️ Obrigação Acessória — CT-e")
-        if regime == "simples_nacional":
+        if _regime == "simples_nacional":
             st.warning(
                 "**Simples Nacional:** O preenchimento do campo `cClassTrib` no CT-e é "
                 "**facultativo em 2026** e **obrigatório a partir de 01/01/2027**. "
@@ -510,12 +534,12 @@ with tab_simular:
                 for reg_key, reg_label in regimes_para_comparar:
                     try:
                         op_comp = OperacaoFrete(
-                            modal=modal,
-                            origem_uf=origem_uf,
-                            destino_uf=destino_uf,
+                            modal=_modal,
+                            origem_uf=_origem,
+                            destino_uf=_destino,
                             regime_tributario=reg_key,
-                            valor_frete=valor_frete,
-                            data_referencia=f"{ano_ref}-06-15",
+                            valor_frete=_valor,
+                            data_referencia=f"{_ano_ref}-06-15",
                         )
                         state_comp = {
                             "operacao": op_comp,
@@ -545,7 +569,7 @@ with tab_simular:
 
             if comparacao_rows:
                 st.subheader("📊 Comparação entre Regimes")
-                st.caption(f"Rota {origem_uf}→{destino_uf} | Frete R$ {valor_frete:,.2f}")
+                st.caption(f"Rota {_origem}→{_destino} | Frete R$ {_valor:,.2f}")
                 df_comp = pd.DataFrame(comparacao_rows)
                 # Pivot: anos como linhas, regimes como colunas
                 df_pivot = df_comp.pivot_table(
@@ -556,7 +580,7 @@ with tab_simular:
                 )
 
                 def _color_min(row):
-                    """Highlight minimum value (best regime) in green."""
+                    """Highlight minimum value (best _regime) in green."""
                     styles = [""] * len(row)
                     min_idx = row.values.argmin()
                     styles[min_idx] = "color: #4CAF50; font-weight: bold"
